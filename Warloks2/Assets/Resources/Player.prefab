@@ -3516,6 +3516,8 @@ GameObject:
   - component: {fileID: 8680489779551031572}
   - component: {fileID: 2359813315214958170}
   - component: {fileID: 7627974513480415278}
+  - component: {fileID: 8982716674526943475}
+  - component: {fileID: -6178703625101713120}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -3777,9 +3779,37 @@ MonoBehaviour:
   stamina: 5
   playerLayer:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 0
   marker: {fileID: 6142245786826329156}
   spine: {fileID: 5675909621103067043}
+--- !u!114 &8982716674526943475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8269236202230940632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23c22ff4a884ca498bfad9dc27ac544, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSkills
+  teleportDelay: 3
+  teleportCooldown: 10
+  teleportIsReady: 1
+  teleportParticle: {fileID: 945898872936276791, guid: 6c4cde71397693e4aa66ffcd11859225, type: 3}
+--- !u!114 &-6178703625101713120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8269236202230940632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ada8d6b490bb4e24981dd8009313f05b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhotonDestroy
 --- !u!1 &8575848342402502250
 GameObject:
   m_ObjectHideFlags: 0

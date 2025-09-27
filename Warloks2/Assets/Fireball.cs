@@ -7,12 +7,13 @@ public class Fireball : MonoBehaviourPunCallbacks
     public int damage = 30;
     public float lifetime = 5f;
     public GameObject explosionEffect;
-
+    PhotonDestroy photonDestroy;
     private int ownerId;
 
   public  Vector3 desiredPosition;
     void Start()
     {
+        photonDestroy = GetComponent<PhotonDestroy>();
         if (!photonView.IsMine)
         { 
             enabled = false;
@@ -48,16 +49,13 @@ public class Fireball : MonoBehaviourPunCallbacks
             if (health != null)
             {
                 health.TakeDamage(damage, ownerId);
+                photonDestroy.PunDestroy(gameObject, 0.2f);
             }
         }
 
         // Создаем эффект взрыва
 
 
-        PhotonNetwork.Destroy(gameObject);
-    }
-    private void Destr()
-    {
-        PhotonNetwork.Destroy(gameObject);
+      
     }
 }

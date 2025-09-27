@@ -26,9 +26,10 @@ namespace Photon.Pun
     #if UNITY_EDITOR
     using UnityEditor;
     using System.IO;
-    #endif
+    using System.Collections;
+#endif
 
-
+   
     public struct InstantiateParameters
     {
         public int[] viewIDs;
@@ -2747,16 +2748,18 @@ namespace Photon.Pun
         /// <returns>Nothing. Check error debug log for any issues.</returns>
         public static void Destroy(PhotonView targetView)
         {
+           
             if (targetView != null)
             {
                 RemoveInstantiatedGO(targetView.gameObject, !InRoom);
+               
             }
             else
             {
                 Debug.LogError("Destroy(targetPhotonView) failed, cause targetPhotonView is null.");
             }
         }
-
+        
         /// <summary>
         /// Network-Destroy the GameObject, unless it is static or not under this client's control.
         /// </summary>

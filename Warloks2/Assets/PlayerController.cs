@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public LayerMask playerLayer;
     public GameObject marker;
     [SerializeField] Transform spine;
+    PlayerSkills skills;
+ 
     void ShootRayFromCenter()
     {
        
@@ -46,8 +48,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        
         if (photonView.IsMine)
         {
+            skills = GetComponent<PlayerSkills>();
             cam = transform.Find("Main Camera").gameObject.GetComponent<Camera>();
         }
         else
@@ -89,6 +93,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 anim.SetBool("cast", true);
 
             }
+            if (Input.GetKeyDown(KeyCode.T)) 
+             {
+               skills.StartCoroutine(skills.Teleport(marker.transform.position));
+              }
         
     }
     bool CanCast()

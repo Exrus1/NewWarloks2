@@ -17,10 +17,12 @@ public class Player : MonoBehaviourPunCallbacks
     Animator anim;
     PlayerController controller;
     ThirdPersonCamera third;
-  [SerializeField]  Rigidbody[] childrenRb;
+    [SerializeField]  Rigidbody[] childrenRb;
     [SerializeField] Collider[] colliders;
+  
     void Start()
     {
+      
         anim = GetComponent<Animator>();
         hpText.text = health.ToString();
         controller = GetComponent<PlayerController>();
