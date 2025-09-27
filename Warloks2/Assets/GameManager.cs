@@ -35,7 +35,10 @@ public class GameManager : MonoBehaviourPunCallbacks
       
     }
 
-    
+    public void EndGame()
+    {
+        PhotonNetwork.LoadLevel("Lobby");
+    }
 
-   
+
 }

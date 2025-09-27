@@ -1,4 +1,6 @@
 ﻿
+using System;
+using System.Collections.Generic;
 using Photon.Pun;
 
 using UnityEngine;
@@ -19,12 +21,18 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [SerializeField] float shiftSpeed = 10f;
     [SerializeField] float jumpForce = 7f;
     [SerializeField] float stamina = 5f;
-    Camera cam;
+  public  Camera cam;
     public LayerMask playerLayer;
     public GameObject marker;
     [SerializeField] Transform spine;
     PlayerSkills skills;
- 
+
+
+    public KeyCode Jump;
+    public KeyCode Fireball;
+    public KeyCode Invisible;
+    public KeyCode Teleport;
+
     void ShootRayFromCenter()
     {
        
@@ -48,11 +56,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        cam = transform.Find("Main Camera").gameObject.GetComponent<Camera>();
         if (photonView.IsMine)
         {
             skills = GetComponent<PlayerSkills>();
-            cam = transform.Find("Main Camera").gameObject.GetComponent<Camera>();
+            
         }
         else
         {
@@ -76,7 +84,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
             direction = transform.TransformDirection(direction);
             anim.SetFloat("h", moveHorizontal);
             anim.SetFloat("v", moveVertical);
-            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            if (Input.GetKeyDown(Jump) && isGrounded)
             {
 
                 isGrounded = false;
@@ -88,16 +96,20 @@ public class PlayerController : MonoBehaviourPunCallbacks
             {
                 //dash
             }
-            if (Input.GetMouseButtonDown(0) && !anim.GetBool("cast"))
+            if (Input.GetKeyDown(Fireball) && !anim.GetBool("cast"))
             {
                 anim.SetBool("cast", true);
 
             }
-            if (Input.GetKeyDown(KeyCode.T)) 
+            if (Input.GetKeyDown(Teleport)) 
              {
                skills.StartCoroutine(skills.Teleport(marker.transform.position));
               }
-        
+        if (Input.GetKeyDown(Invisible))
+        {
+            skills.StartCoroutine(skills.Invisible());
+        }
+
     }
     bool CanCast()
     {
