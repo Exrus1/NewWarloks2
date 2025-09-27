@@ -4,9 +4,10 @@ using UnityEngine;
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public float gravity;
-   
+   MusicManager musicManager;
     void Start()
     {
+        musicManager = FindAnyObjectByType<MusicManager>();
         Physics.gravity = new Vector3(0, Physics.gravity.y * gravity, 0);
         if (PhotonNetwork.IsConnectedAndReady)
         {
@@ -37,6 +38,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void EndGame()
     {
+        musicManager.PlayMusic();
         PhotonNetwork.LoadLevel("Lobby");
     }
 

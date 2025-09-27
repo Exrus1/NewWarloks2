@@ -9,8 +9,16 @@ public class MenuManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] TMP_Text logText;
     [SerializeField] TMP_InputField inputField;
+    MusicManager musicManager;
     void Start()
     {
+        if (Time.time < 1f)
+        {
+            musicManager = FindAnyObjectByType<MusicManager>();
+            DontDestroyOnLoad(musicManager.gameObject);
+            musicManager.PlayMusic();
+        }
+       
         PhotonNetwork.NickName = "Player" + Random.Range(1, 9999); 
         Log("Player Name: " + PhotonNetwork.NickName);
         PhotonNetwork.AutomaticallySyncScene = true; 

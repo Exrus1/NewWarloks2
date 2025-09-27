@@ -12,9 +12,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     [SerializeField] TMP_Text PlayersText;
 
     [SerializeField] GameObject startButton;
-    
+    MusicManager musicManager;
     void Start()
     {
+        musicManager = FindAnyObjectByType<MusicManager>();
         RefreshPlayers();
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -23,7 +24,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
     public void StartGame()
     {
+        musicManager.PlayBattleMusic();
         PhotonNetwork.LoadLevel("Game");
+     
     }
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
