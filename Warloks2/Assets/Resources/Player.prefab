@@ -3784,7 +3784,7 @@ MonoBehaviour:
   marker: {fileID: 6142245786826329156}
   spine: {fileID: 5675909621103067043}
   Jump: 32
-  Fireball: 48
+  Fireball: 323
   Invisible: 113
   Teleport: 116
 --- !u!114 &8982716674526943475
