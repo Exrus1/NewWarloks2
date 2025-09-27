@@ -6,7 +6,7 @@ public class MusicManager : MonoBehaviour
   [SerializeField]  AudioClip[] music;
     AudioSource source;
 
-    private void Start()
+    private void Awake()
     {
             source = GetComponent<AudioSource>();
        
