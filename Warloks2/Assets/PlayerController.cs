@@ -1,4 +1,5 @@
 ﻿
+using System.Collections;
 using Photon.Pun;
 
 using UnityEngine;
@@ -34,8 +35,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
     PositionalSoundSync positionalSound;
     AudioSource footSound;
 
- 
-
+ CapsuleCollider capsuleCollider;
+    Coroutine jumpCoroutine;
     void ShootRayFromCenter()
     {
        
@@ -57,6 +58,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        capsuleCollider = GetComponent<CapsuleCollider>();
         cam = transform.Find("Main Camera").gameObject.GetComponent<Camera>();
         if (photonView.IsMine)
         {
@@ -97,9 +99,16 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
                 isGrounded = false;
                 anim.SetBool("jump", true);
-
-
+            if (jumpCoroutine!= null) 
+            {
+                StopCoroutine(jumpCoroutine);
             }
+             
+              jumpCoroutine =  StartCoroutine(FloatingTrue());
+
+
+            rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
+        }
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 //dash
@@ -120,13 +129,20 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
 
     }
-   
+    IEnumerator FloatingTrue()
+    {
+        yield return new WaitForSeconds(0.75f);
+        if (!isGrounded) 
+        {
+            anim.SetBool("floating", true);
+        }
+    }
  
   
-    public void AddForceJump()
-    {
-        rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
-    }
+    //public void AddForceJump()
+    //{
+    //    rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
+    //}
     public void SwitchToMain()
     {
         anim.SetBool("cast", false);
@@ -134,16 +150,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     }
 
-    public void FloatingTrue()
-    {
-        anim.SetBool("floating", true);
-    }
+    //public void FloatingTrue()
+    //{
+    //    anim.SetBool("floating", true);
+    //}
     void FixedUpdate()
     {
         rb.MovePosition(transform.position + direction * currentSpeed * Time.deltaTime);
     }
     void OnCollisionEnter(Collision collision)
     {
+       
         isGrounded = true;
         anim.SetBool("jump", false);
         anim.SetBool("floating", false);
