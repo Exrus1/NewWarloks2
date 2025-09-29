@@ -46,6 +46,11 @@ MonoBehaviour:
   - CastFireballPUN
   - ReSetInvision
   - SetInvision
+  - RPC_PlaySoundAtPosition
+  - RPC_PlayFootSoundAtPosition
+  - BattleMusic
+  - RPC_PlayFootSound
+  - RPC_SetParent
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

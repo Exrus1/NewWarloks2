@@ -4,7 +4,7 @@ using UnityEngine;
 public class Fireball : MonoBehaviourPunCallbacks
 {
     public float speed = 10f;
-    public int damage = 30;
+    public float damage = 30;
     public float lifetime = 5f;
     public GameObject explosionEffect;
     PhotonDestroy photonDestroy;
@@ -18,7 +18,7 @@ public class Fireball : MonoBehaviourPunCallbacks
         { 
             enabled = false;
         }
-        Invoke("Destr", lifetime);
+        photonDestroy.PunDestroy(gameObject, lifetime);
     }
     private void FixedUpdate()
     {
@@ -48,14 +48,39 @@ public class Fireball : MonoBehaviourPunCallbacks
             Debug.Log(other);
             if (health != null)
             {
-                health.TakeDamage(damage, ownerId);
-                photonDestroy.PunDestroy(gameObject, 0.2f);
+                health.StartCoroutine(health.GradualDamage(lifetime,damage));
+                SetNetworkParent(other.transform);
             }
         }
+    }
+ 
+    [PunRPC]
+    void RPC_SetParent(int parentViewId)
+    {
+        if (parentViewId == -1)
+        {
+            // Устанавливаем родителя в null
+            transform.SetParent(null);
+            return;
+        }
 
-        // Создаем эффект взрыва
+        PhotonView parentView = PhotonView.Find(parentViewId);
+        if (parentView != null)
+        {
+            transform.SetParent(parentView.transform);
+            transform.localPosition = new Vector3(Random.Range(-0.15f,0.15f), Random.Range(0.5f, 1.5f), Random.Range(-0.15f, 0.15f));
+        }
+        enabled = false;
+    }
 
+    public void SetNetworkParent(Transform newParent)
+    {
+        int parentViewId = newParent != null ? newParent.GetComponent<PhotonView>().ViewID : -1;
 
-      
+        // Локальное применение
+        transform.SetParent(newParent);
+
+        // Синхронизация с другими клиентами
+        photonView.RPC("RPC_SetParent", RpcTarget.All, parentViewId);
     }
 }

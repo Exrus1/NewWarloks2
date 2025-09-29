@@ -1,6 +1,7 @@
 
 
 
+using System.Collections;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine;
 public class Player : MonoBehaviourPunCallbacks
 {
 
-    int health = 100;
+    float health = 1000;
     bool isDead;
     [SerializeField] TMP_Text hpText;
     Rigidbody rb;
@@ -48,31 +49,39 @@ public class Player : MonoBehaviourPunCallbacks
             this.enabled = false;
         }
     }
-   
-    
-    
-    
-    public void TakeDamage(int damage, int attackerId)
+  public  IEnumerator GradualDamage(float duration,float damage) 
+    {
+        while (duration>0) 
+        { 
+            duration-=0.25f;
+            TakeDamage(damage);
+            yield return new WaitForSeconds(0.25f);
+        }
+    }
+
+
+
+    public void TakeDamage(float damage)
     {
        
         if (isDead||photonView.IsMine ) return;
 
-        photonView.RPC("RPC_TakeDamage", RpcTarget.All, damage, attackerId);
+        photonView.RPC("RPC_TakeDamage", RpcTarget.All, damage);
     }
     [PunRPC]
-    void RPC_TakeDamage(int damage, int attackerId)
+    void RPC_TakeDamage(float damage)
     {
         if (isDead) return;
 
         health -= damage;
-        hpText.text = health.ToString();
+        hpText.text = health.ToString("f0");
 
         if (health <= 0)
         {
-            Die(attackerId);
+            Die();
         }
     }
-    void Die(int killerId)
+    void Die()
     {
         isDead = true;
        

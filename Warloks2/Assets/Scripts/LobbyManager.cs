@@ -24,9 +24,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
     public void StartGame()
     {
-        musicManager.PlayBattleMusic();
+        photonView.RPC("BattleMusic", RpcTarget.All);
+        
         PhotonNetwork.LoadLevel("Game");
      
+    }
+    [PunRPC]
+    public void BattleMusic()
+    {
+        musicManager.PlayBattleMusic();
+      
+
     }
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {

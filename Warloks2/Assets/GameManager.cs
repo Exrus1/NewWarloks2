@@ -38,9 +38,13 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void EndGame()
     {
-        musicManager.PlayMusic();
+        photonView.RPC("PlayMenuMusic", RpcTarget.All);
         PhotonNetwork.LoadLevel("Lobby");
     }
-
+    public void PlayMenuMusic()
+    {
+        musicManager.PlayMusic();
+       
+    }
 
 }

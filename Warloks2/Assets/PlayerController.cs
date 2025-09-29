@@ -1,6 +1,4 @@
 ﻿
-using System;
-using System.Collections.Generic;
 using Photon.Pun;
 
 using UnityEngine;
@@ -10,9 +8,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
 {
     public float cooldown = 2f;
     public GameObject fireballPrefab;
-    public Transform spawnPoint;
+    
     float currentSpeed;
-    private float lastCastTime;
+  
     Vector3 direction;
     Rigidbody rb;
     bool isGrounded = true;
@@ -26,12 +24,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public GameObject marker;
     [SerializeField] Transform spine;
     PlayerSkills skills;
-
+    
 
     public KeyCode Jump;
     public KeyCode Fireball;
     public KeyCode Invisible;
     public KeyCode Teleport;
+
+    PositionalSoundSync positionalSound;
+    AudioSource footSound;
+
+ 
 
     void ShootRayFromCenter()
     {
@@ -40,20 +43,18 @@ public class PlayerController : MonoBehaviourPunCallbacks
             Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
             Ray ray = cam.ScreenPointToRay(screenCenter);
 
-            // Создаем маску, исключающую слой игрока (используем побитовое НЕ ~)
-            LayerMask layerMask = ~playerLayer;
+           
+            LayerMask layerMask =  ~(1 << 2);
 
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
             {
                 marker.transform.position = hit.point;
-
-                // Дополнительные действия при попадании
             }
         
        
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
         cam = transform.Find("Main Camera").gameObject.GetComponent<Camera>();
@@ -70,6 +71,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
         currentSpeed = movementSpeed;
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+        footSound = GetComponent<AudioSource>();
+        positionalSound = GetComponent<PositionalSoundSync>();
+       
     }
 
     // Update is called once per frame
@@ -84,6 +88,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
             direction = transform.TransformDirection(direction);
             anim.SetFloat("h", moveHorizontal);
             anim.SetFloat("v", moveVertical);
+        if ((moveHorizontal!=0||moveVertical!=0)&&!footSound.isPlaying&&isGrounded) 
+        {
+            positionalSound.PlayFootSound();
+        }
             if (Input.GetKeyDown(Jump) && isGrounded)
             {
 
@@ -99,60 +107,22 @@ public class PlayerController : MonoBehaviourPunCallbacks
             if (Input.GetKeyDown(Fireball) && !anim.GetBool("cast"))
             {
                 anim.SetBool("cast", true);
-
+             
             }
             if (Input.GetKeyDown(Teleport)) 
              {
                skills.StartCoroutine(skills.Teleport(marker.transform.position));
-              }
+            
+             }
         if (Input.GetKeyDown(Invisible))
         {
             skills.StartCoroutine(skills.Invisible());
         }
 
     }
-    bool CanCast()
-    {
-        return Time.time - lastCastTime >= cooldown;
-    }
-  public  void CastFireball()
-    {
-        if (!photonView.IsMine) return;
-        // ������� �������� ��� �� ������-�������
-        GameObject fireball = PhotonNetwork.Instantiate(
-            fireballPrefab.name,
-            spawnPoint.position,
-            transform.rotation
-        );
-
-        // ��������� ������
-        Fireball fb = fireball.GetComponent<Fireball>();
-
-
-        fb.desiredPosition = marker.transform.position;
-        fb.SetOwner(photonView.Owner.ActorNumber);
-    }
-
-
-    [PunRPC]
-    void CastFireballPUN()
-    {
-        if (!photonView.IsMine) return;
-        // ������� �������� ��� �� ������-�������
-        GameObject fireball = PhotonNetwork.Instantiate(
-            fireballPrefab.name,
-            spawnPoint.position,
-            transform.rotation
-        );
-
-        // ��������� ������
-        Fireball fb = fireball.GetComponent<Fireball>();
-       
-           
-            fb.desiredPosition = marker.transform.position;
-            fb.SetOwner(photonView.Owner.ActorNumber);
-        
-    }
+   
+ 
+  
     public void AddForceJump()
     {
         rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);

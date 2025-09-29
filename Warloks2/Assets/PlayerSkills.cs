@@ -1,16 +1,17 @@
-using System.Collections;
+О╩©using System.Collections;
 using Photon.Pun;
 using UnityEngine;
 
 
+
 public class PlayerSkills : MonoBehaviourPunCallbacks
 {
-    //рекеонпр
+    //п╒п∙п⌡п∙п÷п·п═п╒
     [SerializeField] float teleportDelay;
     [SerializeField] float teleportCooldown;
     bool teleportIsReady=true;
     [SerializeField] GameObject teleportParticle;
-    //хмбхг
+    //п≤п²п▓п≤п≈
     [SerializeField] float invisibleDuration;
     [SerializeField] float invisibleCooldown;
      bool  invisibleIsReady = true;
@@ -19,23 +20,27 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
     [SerializeField] LayerMask invisibleMask;
     [SerializeField] SkinnedMeshRenderer mesh;
     Material defaultMaterial;
-
-
+    public Transform shoot;
+    public GameObject fireballPrefab;
     PhotonDestroy photonDestroy;
     PlayerController playerController;
-
+    PositionalSoundSync positionalSound;
+    Transform marker;
     private void Start()
     {
         defaultMaterial = mesh.material;
 
         photonDestroy = GetComponent<PhotonDestroy>();
         playerController = GetComponent<PlayerController>();
+        marker = playerController.marker.transform;
+        positionalSound = GetComponent<PositionalSoundSync>();
     }
     public IEnumerator Teleport(Vector3 pos) 
     {if (teleportIsReady)
         {
             teleportIsReady = false;
-         
+            positionalSound.PlaySoundAtPosition(3, transform.position);
+
             yield return new WaitForSeconds(teleportDelay);
             GameObject tp = PhotonNetwork.Instantiate(
           teleportParticle.name,
@@ -45,7 +50,7 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
             photonDestroy.PunDestroy(tp, 3);
 
             transform.position = pos;
-           
+            positionalSound.PlaySoundAtPosition(2, transform.position);
             GameObject tp2 = PhotonNetwork.Instantiate(
           teleportParticle.name,
           transform.position,
@@ -62,8 +67,9 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         if (invisibleIsReady&&photonView.IsMine)
         {
             photonView.RPC("SetInvision", RpcTarget.All);
-            
+            positionalSound.PlaySoundAtPosition(1, transform.position);
             yield return new WaitForSeconds(invisibleDuration);
+            positionalSound.PlaySoundAtPosition(1, transform.position);
             photonView.RPC("ReSetInvision", RpcTarget.All);
             yield return new WaitForSeconds(invisibleCooldown);
             invisibleIsReady = true;
@@ -90,9 +96,47 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         {
             child.gameObject.layer = 0;
         }
+        
         playerController.cam.cullingMask = defaultMask;
         mesh.material = defaultMaterial;
     }
+    public void CastFireball()
+    {
+        if (!photonView.IsMine) return;
+        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+        GameObject fireball = PhotonNetwork.Instantiate(
+            fireballPrefab.name,
+            shoot.position,
+            transform.rotation
+        );
 
+        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+        Fireball fb = fireball.GetComponent<Fireball>();
+
+        positionalSound.PlaySoundAtPosition(0, transform.position);
+        fb.desiredPosition = marker.transform.position;
+        fb.SetOwner(photonView.Owner.ActorNumber);
+    }
+
+
+    [PunRPC]
+    void CastFireballPUN()
+    {
+        if (!photonView.IsMine) return;
+        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+        GameObject fireball = PhotonNetwork.Instantiate(
+            fireballPrefab.name,
+            marker.position,
+            transform.rotation
+        );
+
+        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+        Fireball fb = fireball.GetComponent<Fireball>();
+
+
+        fb.desiredPosition = marker.transform.position;
+        fb.SetOwner(photonView.Owner.ActorNumber);
+
+    }
 
 }
