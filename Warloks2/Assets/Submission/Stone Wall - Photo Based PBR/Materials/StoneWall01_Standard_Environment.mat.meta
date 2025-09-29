@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cfa5f371aff54b141b26d66c0cd0935d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 160540
+  packageName: Stone Wall - Photo Based PBR
+  packageVersion: 1.1
+  assetPath: Assets/Submission/Stone Wall - Photo Based PBR/Materials/StoneWall01_Standard_Environment.mat
+  uploadId: 348999
