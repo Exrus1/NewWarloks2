@@ -5,32 +5,41 @@ using TMPro;
 using Photon.Pun;
 using System.Collections;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+
 
 
 public class MenuManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] TMP_Text logText;
     [SerializeField] TMP_InputField inputField;
-    MusicManager musicManager;
-
+    SoundManager musicManager;
+    bool connect=false;
   [SerializeField]  Image blackOut;
     void Start()
     {
         StartCoroutine(BlackOut(2));
         if (Time.time < 1f)
         {
-            musicManager = FindAnyObjectByType<MusicManager>();
+            musicManager = FindAnyObjectByType<SoundManager>();
             DontDestroyOnLoad(musicManager.gameObject);
             musicManager.PlayMusic();
         }
        
-        PhotonNetwork.NickName = "Player" + Random.Range(1, 9999); 
-        Log("Player Name: " + PhotonNetwork.NickName);
+        PhotonNetwork.NickName = "Игрок" + Random.Range(1, 9999); 
+        Log("Ваше имя: " + PhotonNetwork.NickName);
         PhotonNetwork.AutomaticallySyncScene = true; 
-        PhotonNetwork.GameVersion = "1"; 
-        PhotonNetwork.ConnectUsingSettings();
+        PhotonNetwork.GameVersion = "1";
+        
+            PhotonNetwork.ConnectUsingSettings();
+        
     }
+  
+        //if (!PhotonNetwork.IsConnected)
+        //{
+        //    PhotonNetwork.ConnectUsingSettings();
+        //    print("a");
+        //}
+   
     void Log(string message)
     {
         logText.text += "\n";
@@ -38,56 +47,67 @@ public class MenuManager : MonoBehaviourPunCallbacks
     }
     public void CreateRoom()
     {
-        PhotonNetwork.CreateRoom(null, new Photon.Realtime.RoomOptions { MaxPlayers = 15 });
-        StartCoroutine(BlackOut(0));
+        if (connect)
+        {
+            PhotonNetwork.CreateRoom(null, new Photon.Realtime.RoomOptions { MaxPlayers = 15 });
+            StartCoroutine(BlackOut(0));
+        }
     }
     public void JoinRoom()
     {
-        PhotonNetwork.JoinRandomRoom();
+        if (connect)
+        {
+            PhotonNetwork.JoinRandomRoom();
+        }
     }
     public override void OnConnectedToMaster()
     {
-        Log("Connected to the server");
+        connect = true;
+        Log("Подключен к серверу");
     }
     public override void OnJoinedRoom()
     {
-        Log("Joined the lobby");
+        Log("Вход в лобби");
         StartCoroutine(BlackOut(1));
     }
     public void ChangeName()
     {
         PhotonNetwork.NickName = inputField.text;
-        Log("New Player name: " + PhotonNetwork.NickName);
+        Log("Ваше новое имя: " + PhotonNetwork.NickName);
     }
     IEnumerator BlackOut(int type) 
-    {
-        if (type != 2)
+    {if (connect)
         {
-            blackOut.color = new Color(0, 0, 0, 0.25f);
-            while (blackOut.color.a < 1f)
+            blackOut.raycastTarget = true;
+            if (type != 2)
             {
-                blackOut.color += new Color(0, 0, 0, Time.deltaTime * 0.5f);
-                yield return new WaitForSeconds(0.01f);
-            }
-        }
-        switch (type)
-        {
-            case 0:
-                PhotonNetwork.LoadLevel("Lobby");
-             
-                break;
-            case 1:
-
-                PhotonNetwork.JoinRandomRoom();
-                break;
-            case 2:
-                blackOut.color = new Color(0, 0, 0, 1f);
-                while (blackOut.color.a > 0f)
+                blackOut.color = new Color(0, 0, 0, 0.25f);
+                while (blackOut.color.a < 1f)
                 {
-                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime*0.5f);
+                    blackOut.color += new Color(0, 0, 0, Time.deltaTime);
                     yield return new WaitForSeconds(0.01f);
                 }
-                break;
+            }
+            switch (type)
+            {
+                case 0:
+                    PhotonNetwork.LoadLevel("Lobby");
+
+                    break;
+                case 1:
+
+                    //PhotonNetwork.JoinRandomRoom();
+                    break;
+                case 2:
+                    blackOut.color = new Color(0, 0, 0, 1f);
+                    while (blackOut.color.a > 0f)
+                    {
+                        blackOut.color -= new Color(0, 0, 0, Time.deltaTime);
+                        yield return new WaitForSeconds(0.01f);
+                    }
+                    break;
+            }
+           
         }
     }
 }

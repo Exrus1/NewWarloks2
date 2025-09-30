@@ -14,13 +14,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     [SerializeField] TMP_Text PlayersText;
 
     [SerializeField] GameObject startButton;
-    MusicManager musicManager;
+    SoundManager musicManager;
     [SerializeField] Image blackOut;
     void Start()
     {
+        
         Cursor.lockState = CursorLockMode.None;
         StartCoroutine(BlackOut(2));
-        musicManager = FindAnyObjectByType<MusicManager>();
+        musicManager = FindAnyObjectByType<SoundManager>();
         RefreshPlayers();
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -43,7 +44,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
-        Log(otherPlayer.NickName + " left the room");
+        Log(otherPlayer.NickName + " вышел из комнаты");
         RefreshPlayers();
         if (PhotonNetwork.IsMasterClient)
         {
@@ -52,14 +53,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
-        Log(newPlayer.NickName + " entered the room");
+        Log(newPlayer.NickName + " вошел в комнату");
         RefreshPlayers();
     }
     
  
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom();
+          
+
         StartCoroutine(BlackOut(0));
     }
     void Log(string message)
@@ -70,7 +72,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
    
     public override void OnLeftRoom()
     {
-       
+
+        SceneManager.LoadScene(0);
     }
     
     [PunRPC]
@@ -99,7 +102,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void ShowPlayers()
     {
-        PlayersText.text = "Players: ";
+        PlayersText.text = "Игроки: ";
         foreach (Photon.Realtime.Player otherPlayer in PhotonNetwork.PlayerList)
         {
             PlayersText.text += "\n";
@@ -108,33 +111,40 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
     IEnumerator BlackOut(int type)
     {
+       
         if (type!=2)
         {
+            blackOut.raycastTarget = true;
             blackOut.color = new Color(0, 0, 0, 0.25f);
             while (blackOut.color.a < 1f)
             {
-                blackOut.color += new Color(0, 0, 0, Time.deltaTime * 0.5f);
+                blackOut.color += new Color(0, 0, 0, Time.deltaTime);
                 yield return new WaitForSeconds(0.01f);
             }
         }
         switch (type)
         {
             case 0:
-                SceneManager.LoadScene(0);
+                
+                PhotonNetwork.LeaveRoom();
+              
                 break;
             case 1:
                 PhotonNetwork.LoadLevel("Game");
                 break;
             case 2:
+                blackOut.raycastTarget = true;
                 blackOut.color = new Color(0, 0, 0, 1f);
                 while (blackOut.color.a > 0f)
                 {
-                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime * 0.5f);
+                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime*0.5f);
                     yield return new WaitForSeconds(0.01f);
                 }
+                blackOut.raycastTarget = false;
                 break;
         }
-       
+      
+
 
     }
 }
