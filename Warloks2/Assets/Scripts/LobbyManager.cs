@@ -1,9 +1,11 @@
 using UnityEngine;
-using System.Collections.Generic;
+
 using Photon.Pun;
-using UnityEngine.UI;
+
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections;
+using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
@@ -13,8 +15,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     [SerializeField] GameObject startButton;
     MusicManager musicManager;
+    [SerializeField] Image blackOut;
     void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        StartCoroutine(BlackOut(2));
         musicManager = FindAnyObjectByType<MusicManager>();
         RefreshPlayers();
         if (!PhotonNetwork.IsMasterClient)
@@ -25,15 +30,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public void StartGame()
     {
         photonView.RPC("BattleMusic", RpcTarget.All);
-        
-        PhotonNetwork.LoadLevel("Game");
+
+      
      
     }
     [PunRPC]
     public void BattleMusic()
     {
         musicManager.PlayBattleMusic();
-      
+        StartCoroutine(BlackOut(1));
 
     }
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
@@ -51,13 +56,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         RefreshPlayers();
     }
     
-    void Update()
-    {
-        
-    }
+ 
     public void LeaveRoom()
     {
         PhotonNetwork.LeaveRoom();
+        StartCoroutine(BlackOut(0));
     }
     void Log(string message)
     {
@@ -67,7 +70,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
    
     public override void OnLeftRoom()
     {
-        SceneManager.LoadScene(0);
+       
     }
     
     [PunRPC]
@@ -102,5 +105,36 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             PlayersText.text += "\n";
             PlayersText.text += otherPlayer.NickName;
         }
+    }
+    IEnumerator BlackOut(int type)
+    {
+        if (type!=2)
+        {
+            blackOut.color = new Color(0, 0, 0, 0.25f);
+            while (blackOut.color.a < 1f)
+            {
+                blackOut.color += new Color(0, 0, 0, Time.deltaTime * 0.5f);
+                yield return new WaitForSeconds(0.01f);
+            }
+        }
+        switch (type)
+        {
+            case 0:
+                SceneManager.LoadScene(0);
+                break;
+            case 1:
+                PhotonNetwork.LoadLevel("Game");
+                break;
+            case 2:
+                blackOut.color = new Color(0, 0, 0, 1f);
+                while (blackOut.color.a > 0f)
+                {
+                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime * 0.5f);
+                    yield return new WaitForSeconds(0.01f);
+                }
+                break;
+        }
+       
+
     }
 }
