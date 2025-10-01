@@ -7,7 +7,14 @@ public class PositionalSoundSync : MonoBehaviourPunCallbacks
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip[] footSteps;
     public AudioClip[] sfx;//firebal, invision, teleport,teleportCharging
-
+    private void Start()
+    {
+        SoundManager.SFXEvent += ChangeVolume; 
+    }
+    void ChangeVolume(float volume) 
+    { 
+        audioSource.volume = volume;
+    }
     public void PlaySoundAtPosition(int index,Vector3 position)
     {
 

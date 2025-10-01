@@ -3,6 +3,7 @@ using System.Collections;
 using Photon.Pun;
 
 using UnityEngine;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 
 public class PlayerController : MonoBehaviourPunCallbacks
@@ -86,9 +87,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
             float moveHorizontal = Input.GetAxis("Horizontal");
             float moveVertical = Input.GetAxis("Vertical");
 
-            direction = new Vector3(moveHorizontal, 0.0f, moveVertical);
-            direction = transform.TransformDirection(direction);
-            anim.SetFloat("h", moveHorizontal);
+
+       
+
+        direction = new Vector3(moveHorizontal, 0.0f, moveVertical);
+        direction = transform.TransformDirection(direction);
+
+
+
+
+
+        anim.SetFloat("h", moveHorizontal);
             anim.SetFloat("v", moveVertical);
         if ((moveHorizontal!=0||moveVertical!=0)&&!footSound.isPlaying&&isGrounded) 
         {
@@ -156,7 +165,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     //}
     void FixedUpdate()
     {
-        rb.MovePosition(transform.position + direction * currentSpeed * Time.deltaTime);
+        rb.MovePosition(rb.position + direction * currentSpeed * Time.deltaTime);
     }
     void OnCollisionEnter(Collision collision)
     {

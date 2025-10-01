@@ -25,7 +25,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
         Vector3 rotCamera = transform.rotation.eulerAngles;
         Vector3 rotPlayer = player.transform.rotation.eulerAngles;
-        Vector3 rotSpine = spine.transform.rotation.eulerAngles;
+
         rotCamera.x = (rotCamera.x > 180) ? rotCamera.x - 360 : rotCamera.x;
         rotCamera.x = Mathf.Clamp(rotCamera.x, lookUp, lookDown);
         rotCamera.x -= rotateY;
@@ -33,7 +33,6 @@ public class ThirdPersonCamera : MonoBehaviour
         rotCamera.z = 0;
         rotPlayer.y += rotateX;
 
-        rotSpine.z += rotateX;
         transform.rotation = Quaternion.Euler(rotCamera);
         player.transform.rotation = Quaternion.Euler(rotPlayer);
         if (Input.GetKeyDown(KeyCode.Escape))
