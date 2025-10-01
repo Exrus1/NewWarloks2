@@ -55,17 +55,17 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.97678363
-        functionName: SwitchToMain
+      - time: 0.7809756
+        functionName: CastFireball
         data: 
-        objectReferenceParameter: {fileID: 6685678197172631437, guid: e26aa1e5377bf1c4b8b9d854992d2e44, type: 3}
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.7768197
-        functionName: CastFireball
+      - time: 1
+        functionName: SwitchToMain
         data: 
-        objectReferenceParameter: {fileID: 6685678197172631437, guid: e26aa1e5377bf1c4b8b9d854992d2e44, type: 3}
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
