@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             SpawnPlayer();
         }
+
     }
 
     [Header("Spawn Settings")]

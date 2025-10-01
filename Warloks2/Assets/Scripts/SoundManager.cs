@@ -1,14 +1,18 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public class SoundManager : MonoBehaviour
 {
   [SerializeField]  AudioClip[] music;
     AudioSource musicSource;
-    public static float MusicVolume = 0.5f;
-    public static float SoundVolume = 0.5f;
+    public static float MusicVolume;
+    public static float SoundVolume;
     public static event Action<float> SFXEvent;
+ [SerializeField]   Slider musicSlider;
+ [SerializeField]   Slider soundSlider;
     private void Awake()
     {
             musicSource = GetComponent<AudioSource>();
@@ -20,20 +24,41 @@ public class SoundManager : MonoBehaviour
         {
             MusicVolume = PlayerPrefs.GetFloat("MusicVolume");
         }
-        musicSource.volume = MusicVolume;
-        SFXEvent?.Invoke(SoundVolume);
+        ChangeSoundVolume(SoundVolume);
+        ChangeMusicVolume(MusicVolume);
+        
+        Settings.SettingsOpen += FindSlidersAndChangeSlidersValues;
+        //SceneManager.sceneLoaded += SoundUpdateOnSceneLoaded;
     }
-    public void ChangeSoundVolume(float value) 
+
+     void FindSlidersAndChangeSlidersValues() 
+    {
+        musicSlider = GameObject.Find("MusicBar").GetComponent<Slider>();
+        soundSlider = GameObject.Find("SoundsBar").GetComponent<Slider>();
+        ChangeMusicVolume(MusicVolume);
+        ChangeSoundVolume(SoundVolume);
+        musicSlider.value = MusicVolume;
+        soundSlider.value = SoundVolume;
+        musicSlider.onValueChanged.AddListener(ChangeMusicVolume);
+        soundSlider.onValueChanged.AddListener(ChangeSoundVolume);
+
+    }
+
+    //void SoundUpdateOnSceneLoaded(Scene scene, LoadSceneMode mode) 
+    //{
+    //    SFXEvent?.Invoke(SoundVolume);
+    //}
+    public void ChangeSoundVolume(float value)
     {
         SoundVolume = value;
-      
+        SFXEvent?.Invoke(SoundVolume);
         PlayerPrefs.SetFloat("SoundVolume", SoundVolume);
     }
     public void ChangeMusicVolume(float value)
     {
         MusicVolume = value;
         musicSource.volume = MusicVolume;
-        PlayerPrefs.SetFloat("MusicVolume", SoundVolume);
+        PlayerPrefs.SetFloat("MusicVolume", MusicVolume);
     }
     public void PlayMusic()
     {

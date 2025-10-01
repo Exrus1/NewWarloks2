@@ -14713,6 +14713,7 @@ GameObject:
   - component: {fileID: 8743589724473354397}
   - component: {fileID: -4159659481736242401}
   - component: {fileID: -2527237835491899627}
+  - component: {fileID: -5848592379117171727}
   m_Layer: 2
   m_Name: Fireball
   m_TagString: Untagged
@@ -19741,6 +19742,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ada8d6b490bb4e24981dd8009313f05b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonDestroy
+--- !u!114 &-5848592379117171727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7649195763047976666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b562e2026bf570c4da1f76323fda1005, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SFX
 --- !u!1 &8115318344280406075
 GameObject:
   m_ObjectHideFlags: 0

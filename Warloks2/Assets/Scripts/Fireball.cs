@@ -9,17 +9,20 @@ public class Fireball : MonoBehaviourPunCallbacks
     public GameObject explosionEffect;
     PhotonDestroy photonDestroy;
     private int ownerId;
-
+   
   public  Vector3 desiredPosition;
     void Start()
     {
         photonDestroy = GetComponent<PhotonDestroy>();
+       
         if (!photonView.IsMine)
         { 
             enabled = false;
         }
         photonDestroy.PunDestroy(gameObject, lifetime);
+       
     }
+ 
     private void FixedUpdate()
     {
         transform.position = Vector3.MoveTowards(transform.position,desiredPosition,speed*Time.deltaTime);

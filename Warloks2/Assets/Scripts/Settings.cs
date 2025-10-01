@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Settings : MonoBehaviour
@@ -10,16 +11,20 @@ public class Settings : MonoBehaviour
     private RectTransform rectTransform;
     private Vector3 startRotation;
     private float timeCounter = 0f;
-   [SerializeField]GameObject settingsMenu;
+  [SerializeField]  GameObject settingsMenu;
+    public static event Action SettingsOpen;
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
         startRotation = rectTransform.localEulerAngles;
+        settingsMenu = GameObject.Find("SettingsMenu");
+       settingsMenu.SetActive(false);
+     
     }
 
     void Update()
     {
-        if (settingsMenu.activeSelf)
+        if (settingsMenu!=null&& settingsMenu.activeSelf)
         {
             timeCounter += Time.deltaTime * animationSpeed;
 
@@ -43,7 +48,9 @@ public class Settings : MonoBehaviour
         }
         else
         {
+           
             settingsMenu.SetActive(true);
+            SettingsOpen?.Invoke();
         }
     }
 }

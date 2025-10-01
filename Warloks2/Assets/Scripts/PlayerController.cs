@@ -3,7 +3,7 @@ using System.Collections;
 using Photon.Pun;
 
 using UnityEngine;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
+
 
 
 public class PlayerController : MonoBehaviourPunCallbacks
