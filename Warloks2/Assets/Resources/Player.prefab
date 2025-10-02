@@ -1434,7 +1434,7 @@ Transform:
   m_GameObject: {fileID: 4631898813802732578}
   serializedVersion: 2
   m_LocalRotation: {x: 0.14308256, y: -0.000028433278, z: 0.000004110392, w: 0.98971075}
-  m_LocalPosition: {x: 0.421, y: 1.82, z: -2.18}
+  m_LocalPosition: {x: 0.421, y: 2.287, z: -3.762}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1557,8 +1557,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
   player: {fileID: 8269236202230940632}
   mouseSense: 1
-  lookUp: -15
-  lookDown: 20
+  lookUp: -40
+  lookDown: 40
   spine: {fileID: 3887743296583557048}
 --- !u!1 &4813992082441885309
 GameObject:

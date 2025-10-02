@@ -10017,8 +10017,8 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 2
-      minScalar: 1
+      scalar: 0.75
+      minScalar: 0.5
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -19572,6 +19572,13 @@ MonoBehaviour:
   damage: 4
   lifetime: 10
   explosionEffect: {fileID: 0}
+  particles:
+  - {fileID: 7649195763047976666}
+  - {fileID: 8115318344280406075}
+  - {fileID: 7609606792243586413}
+  - {fileID: 2770344281861370605}
+  - {fileID: 8133403126062946356}
+  - {fileID: 778651027810829443}
   desiredPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &767426294622219806
 MonoBehaviour:

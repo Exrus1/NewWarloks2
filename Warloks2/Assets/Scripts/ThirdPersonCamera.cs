@@ -7,10 +7,10 @@ public class ThirdPersonCamera : MonoBehaviour
     [Range(0.5f, 2f)]
     float mouseSense = 1;
     [SerializeField]
-    [Range(-20, -10)]
+ 
     int lookUp = -15;
     [SerializeField]
-    [Range(15, 25)]
+   
     int lookDown = 20;
 
     [SerializeField] Transform spine;

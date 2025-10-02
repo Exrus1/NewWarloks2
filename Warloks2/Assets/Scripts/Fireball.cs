@@ -9,7 +9,7 @@ public class Fireball : MonoBehaviourPunCallbacks
     public GameObject explosionEffect;
     PhotonDestroy photonDestroy;
     private int ownerId;
-   
+    [SerializeField] GameObject[] particles;
   public  Vector3 desiredPosition;
     void Start()
     {
@@ -55,6 +55,11 @@ public class Fireball : MonoBehaviourPunCallbacks
                 SetNetworkParent(other.transform);
                 GetComponent<BoxCollider>().enabled = false;
                 transform.localScale = Vector3.one*0.5f;
+                foreach (GameObject particle in particles)
+                {
+                    particle.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+                }
+               
             }
         }
     }
