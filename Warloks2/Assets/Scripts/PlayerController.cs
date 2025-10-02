@@ -28,10 +28,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     PlayerSkills skills;
     
 
-    public KeyCode Jump;
-    public KeyCode Fireball;
-    public KeyCode Invisible;
-    public KeyCode Teleport;
+   
 
     PositionalSoundSync positionalSound;
     AudioSource footSound;
@@ -103,7 +100,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             positionalSound.PlayFootSound();
         }
-            if (Input.GetKeyDown(Jump) && isGrounded)
+            if (Input.GetKeyDown(ControlsManager.Jump) && isGrounded)
             {
 
                 isGrounded = false;
@@ -122,17 +119,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
             {
                 //dash
             }
-            if (Input.GetKeyDown(Fireball) && !anim.GetBool("cast"))
+            if (Input.GetKeyDown(ControlsManager.Fireball) && !anim.GetBool("cast"))
             {
                 anim.SetBool("cast", true);
              
             }
-            if (Input.GetKeyDown(Teleport)) 
+            if (Input.GetKeyDown(ControlsManager.Teleport)) 
              {
                skills.StartCoroutine(skills.Teleport(marker.transform.position));
             
              }
-        if (Input.GetKeyDown(Invisible))
+        if (Input.GetKeyDown(ControlsManager.Invisible))
         {
             skills.StartCoroutine(skills.Invisible());
         }

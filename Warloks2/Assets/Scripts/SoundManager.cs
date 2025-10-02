@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
 using UnityEngine.UI;
 
 
@@ -13,6 +13,10 @@ public class SoundManager : MonoBehaviour
     public static event Action<float> SFXEvent;
  [SerializeField]   Slider musicSlider;
  [SerializeField]   Slider soundSlider;
+    [SerializeField] GameObject menu;
+
+    
+
     private void Awake()
     {
             musicSource = GetComponent<AudioSource>();
@@ -28,10 +32,21 @@ public class SoundManager : MonoBehaviour
         ChangeMusicVolume(MusicVolume);
         
         Settings.SettingsOpen += FindSlidersAndChangeSlidersValues;
-        //SceneManager.sceneLoaded += SoundUpdateOnSceneLoaded;
+       
+      
     }
-
-     void FindSlidersAndChangeSlidersValues() 
+    public void OpenMenu()
+    {
+        if (menu.activeSelf)
+        {
+            menu.SetActive(false);
+        }
+        else
+        {
+            menu.SetActive(true);
+        }
+    }
+    void FindSlidersAndChangeSlidersValues() 
     {
         musicSlider = GameObject.Find("MusicBar").GetComponent<Slider>();
         soundSlider = GameObject.Find("SoundsBar").GetComponent<Slider>();
@@ -44,10 +59,7 @@ public class SoundManager : MonoBehaviour
 
     }
 
-    //void SoundUpdateOnSceneLoaded(Scene scene, LoadSceneMode mode) 
-    //{
-    //    SFXEvent?.Invoke(SoundVolume);
-    //}
+   
     public void ChangeSoundVolume(float value)
     {
         SoundVolume = value;

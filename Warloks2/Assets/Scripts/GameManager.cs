@@ -42,6 +42,4 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager.PlayMusic();
         PhotonNetwork.LoadLevel("Lobby");
     }
-   
-
 }

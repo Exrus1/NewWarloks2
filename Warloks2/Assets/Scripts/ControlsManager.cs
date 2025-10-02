@@ -1,0 +1,175 @@
+﻿using System;
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ControlsManager : MonoBehaviour
+{
+    public static KeyCode Jump = KeyCode.Space;
+    public static KeyCode Fireball = KeyCode.Mouse0;
+    public static KeyCode Invisible = KeyCode.Q;
+    public static KeyCode Teleport = KeyCode.T;
+
+    KeyCode currentControl;
+    public static event Action openMenuEvent;
+    [SerializeField] GameObject menu;
+
+    [SerializeField] TMP_Text[] keys_text;
+
+    // Ключи для сохранения в PlayerPrefs
+    private const string JUMP_KEY = "JumpKey";
+    private const string FIREBALL_KEY = "FireballKey";
+    private const string INVISIBLE_KEY = "InvisibleKey";
+    private const string TELEPORT_KEY = "TeleportKey";
+    [SerializeField] Image[] buttons;
+    void TextUpdate(int i, string str)
+    {
+        keys_text[i].text = str;
+    }
+
+    private void Start()
+    {
+        LoadControls();
+        UpdateAllTexts();
+    }
+
+    public void ChangeControl(int i)
+    {
+        StopAllCoroutines();
+
+        buttons[i].color = Color.red;
+      
+        StartCoroutine(Cor(i));
+    }
+
+    IEnumerator Cor(int i)
+    {
+        // Ждем любое нажатие
+        while (!Input.anyKeyDown)
+        {
+            yield return null;
+        }
+
+        // Ищем конкретную нажатую клавишу
+        foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
+        {
+            if (Input.GetKeyDown(keyCode) && keyCode != KeyCode.None)
+            {
+                switch (i)
+                {
+                    case 0:
+                        Jump = keyCode;
+                        SaveControl(JUMP_KEY, keyCode);
+                        break;
+                    case 1:
+                        Fireball = keyCode;
+                        SaveControl(FIREBALL_KEY, keyCode);
+                        break;
+                    case 2:
+                        Invisible = keyCode;
+                        SaveControl(INVISIBLE_KEY, keyCode);
+                        break;
+                    case 3:
+                        Teleport = keyCode;
+                        SaveControl(TELEPORT_KEY, keyCode);
+                        break;
+                }
+                TextUpdate(i, GetKeyDisplayName(keyCode));
+                buttons[i].color = Color.white;
+                yield break;
+            }
+        }
+
+    }
+
+    // Сохранение управления
+    private void SaveControl(string key, KeyCode value)
+    {
+        PlayerPrefs.SetInt(key, (int)value);
+        PlayerPrefs.Save(); // Важно вызывать Save для немедленного сохранения
+    }
+
+    // Загрузка управления
+    private void LoadControls()
+    {
+        if (PlayerPrefs.HasKey(JUMP_KEY))
+            Jump = (KeyCode)PlayerPrefs.GetInt(JUMP_KEY);
+        else
+            SaveControl(JUMP_KEY, Jump); // Сохраняем значение по умолчанию
+
+        if (PlayerPrefs.HasKey(FIREBALL_KEY))
+            Fireball = (KeyCode)PlayerPrefs.GetInt(FIREBALL_KEY);
+        else
+            SaveControl(FIREBALL_KEY, Fireball);
+
+        if (PlayerPrefs.HasKey(INVISIBLE_KEY))
+            Invisible = (KeyCode)PlayerPrefs.GetInt(INVISIBLE_KEY);
+        else
+            SaveControl(INVISIBLE_KEY, Invisible);
+
+        if (PlayerPrefs.HasKey(TELEPORT_KEY))
+            Teleport = (KeyCode)PlayerPrefs.GetInt(TELEPORT_KEY);
+        else
+            SaveControl(TELEPORT_KEY, Teleport);
+    }
+
+    // Обновление всех текстовых полей
+    private void UpdateAllTexts()
+    {
+        TextUpdate(0, GetKeyDisplayName(Jump));
+        TextUpdate(1, GetKeyDisplayName(Fireball));
+        TextUpdate(2, GetKeyDisplayName(Invisible));
+        TextUpdate(3, GetKeyDisplayName(Teleport));
+    }
+
+    // Сброс к настройкам по умолчанию
+    public void ResetToDefaults()
+    {
+        Jump = KeyCode.Space;
+        Fireball = KeyCode.Mouse0;
+        Invisible = KeyCode.Q;
+        Teleport = KeyCode.T;
+
+        SaveControl(JUMP_KEY, Jump);
+        SaveControl(FIREBALL_KEY, Fireball);
+        SaveControl(INVISIBLE_KEY, Invisible);
+        SaveControl(TELEPORT_KEY, Teleport);
+
+        UpdateAllTexts();
+    }
+
+    // Удаление всех сохраненных настроек (для отладки)
+    public void ClearAllSaves()
+    {
+        PlayerPrefs.DeleteKey(JUMP_KEY);
+        PlayerPrefs.DeleteKey(FIREBALL_KEY);
+        PlayerPrefs.DeleteKey(INVISIBLE_KEY);
+        PlayerPrefs.DeleteKey(TELEPORT_KEY);
+        PlayerPrefs.Save();
+
+        ResetToDefaults();
+    }
+
+    private string GetKeyDisplayName(KeyCode key)
+    {
+        switch (key)
+        {
+            case KeyCode.Mouse0: return "Левая кнопка мыши";
+            case KeyCode.Mouse1: return "Правая кнопка мыши";
+            case KeyCode.Mouse2: return "Колесико";
+            case KeyCode.LeftControl: return "Левый Ctrl";
+            case KeyCode.RightControl: return "Правый Ctrl";
+            case KeyCode.LeftShift: return "Левый Shift";
+            case KeyCode.RightShift: return "Правый Shift";
+            case KeyCode.LeftAlt: return "Левый Alt";
+            case KeyCode.RightAlt: return "Правый Alt";
+            case KeyCode.UpArrow: return "↑";
+            case KeyCode.DownArrow: return "↓";
+            case KeyCode.LeftArrow: return "←";
+            case KeyCode.RightArrow: return "→";
+            case KeyCode.Space: return "Пробел";
+            default: return key.ToString();
+        }
+    }
+}
