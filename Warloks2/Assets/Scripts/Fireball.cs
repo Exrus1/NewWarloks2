@@ -53,6 +53,8 @@ public class Fireball : MonoBehaviourPunCallbacks
             {
                 health.StartCoroutine(health.GradualDamage(lifetime,damage));
                 SetNetworkParent(other.transform);
+                GetComponent<BoxCollider>().enabled = false;
+                transform.localScale = Vector3.one*0.5f;
             }
         }
     }

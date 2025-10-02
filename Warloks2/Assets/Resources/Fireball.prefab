@@ -9876,7 +9876,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 1, y: 0, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: -0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 0.5}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7472366950623306589}
@@ -10017,8 +10017,8 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 8
-      minScalar: 5
+      scalar: 2
+      minScalar: 1
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -14731,7 +14731,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 24.077082, y: 0.5, z: -3.4144688}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1788140537440719347}
@@ -19568,9 +19568,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fadc54827cf6491479dcc6d9b390572d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Fireball
-  speed: 25
-  damage: 1
-  lifetime: 25
+  speed: 50
+  damage: 4
+  lifetime: 10
   explosionEffect: {fileID: 0}
   desiredPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &767426294622219806

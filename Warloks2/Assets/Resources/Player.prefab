@@ -3807,7 +3807,7 @@ MonoBehaviour:
   teleportCooldown: 3
   teleportParticle: {fileID: 945898872936276791, guid: 6c4cde71397693e4aa66ffcd11859225, type: 3}
   invisibleDuration: 10
-  invisibleCooldown: 15
+  invisibleCooldown: 5
   invisibleMaterial: {fileID: 2100000, guid: 32a76832b79e84347ad9df08b12709c3, type: 2}
   defaultMask:
     serializedVersion: 2
