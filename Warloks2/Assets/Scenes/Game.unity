@@ -8234,7 +8234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93120d9ecfd7fe84590c9ff4866c5798, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  gravity: 2
+  gravity: 1.5
   playerPrefab: {fileID: 8269236202230940632, guid: fe1858ac0e194b041931f1714d38f66b, type: 3}
 --- !u!4 &1564720485
 Transform:
