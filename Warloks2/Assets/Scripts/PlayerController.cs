@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [SerializeField] Transform spine;
     PlayerSkills skills;
 
-    // Добавлено для Electric Ball
+
     private bool isCastingElectricBall = false;
     private Coroutine electricBallCoroutine;
 
@@ -39,21 +39,14 @@ public class PlayerController : MonoBehaviourPunCallbacks
     Coroutine jumpCoroutine;
     void ShootRayFromCenter()
     {
-
-        // Получаем центр экрана
         Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
         Ray ray = cam.ScreenPointToRay(screenCenter);
-
-
         LayerMask layerMask = ~(1 << 2);
-
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
         {
             marker.transform.position = hit.point;
         }
-
-
     }
 
     void Start()
@@ -63,7 +56,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
         if (photonView.IsMine)
         {
             skills = GetComponent<PlayerSkills>();
-
         }
         else
         {
@@ -75,7 +67,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
         anim = GetComponent<Animator>();
         footSound = GetComponent<AudioSource>();
         positionalSound = GetComponent<PositionalSoundSync>();
-
     }
 
     // Update is called once per frame
@@ -83,8 +74,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         ShootRayFromCenter();
         if (isCastingElectricBall) return;
-
-       
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
         direction = new Vector3(moveHorizontal, 0.0f, moveVertical);
@@ -97,24 +86,20 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
         if (Input.GetKeyDown(ControlsManager.Jump) && isGrounded)
         {
-
             isGrounded = false;
             anim.SetBool("jump", true);
             if (jumpCoroutine != null)
             {
                 StopCoroutine(jumpCoroutine);
             }
-
             jumpCoroutine = StartCoroutine(FloatingTrue());
-
-
             rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
         }
         if (Input.GetKey(KeyCode.LeftShift))
         {
            
         }
-        if (Input.GetKeyDown(ControlsManager.Fireball) && !anim.GetBool("cast"))
+        if (Input.GetKeyDown(ControlsManager.Fireball) && CanCast())
         {
             anim.SetBool("cast", true);
 
@@ -128,24 +113,30 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             skills.StartCoroutine(skills.Invisible());
         }
- 
-        if (Input.GetKeyDown(ControlsManager.ElectricBall) && !isCastingElectricBall&&skills.canCastElectricBall)
+        if (Input.GetKeyDown(ControlsManager.ElectricBall) && !isCastingElectricBall&&skills.canCastElectricBall && CanCast())
         {
             anim.SetBool("electricBallCast", true);
         }
-
+        // В методе Update PlayerController добавить:
+        if (Input.GetKeyDown(ControlsManager.WaterExplosion) && CanCast()&&skills.canCastWaterExplosion)
+        {
+            anim.SetBool("waterExplosionCast", true);
+        }
     }
-
-    // Добавлено для Electric Ball
+    private bool CanCast() 
+    {
+        AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(1);
+        bool isInBlendTreeState = stateInfo.IsTag("TopBlendTree");
+        return isInBlendTreeState;
+    }
+    
  public   void StartElectricBallCast()
     {
         if (isCastingElectricBall) return;
-
         isCastingElectricBall = true;
         currentSpeed = 0f; // Блокируем движение
         anim.SetFloat("h", 0);
         anim.SetFloat("v", 0);
-
         electricBallCoroutine = StartCoroutine(ElectricBallCastRoutine());
     }
 
@@ -156,7 +147,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
         float ballInterval = 0.35f;
         float timer = 0f;
         float nextBallTime = 0f;
-
         while (timer < castTime)
         {
             timer += Time.deltaTime;
@@ -170,8 +160,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
             yield return null;
         }
-
-        // Завершаем каст
         isCastingElectricBall = false;
         currentSpeed = movementSpeed; // Восстанавливаем скорость
         anim.SetBool("electricBallCast", false);
@@ -189,17 +177,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public void SwitchToMain()
     {
         anim.SetBool("cast", false);
+        anim.SetBool("waterExplosionCast", false);
     }
 
     void FixedUpdate()
-    {   // Если кастуем Electric Ball, блокируем движение
+    {   
         if (isCastingElectricBall) return;
 
         rb.MovePosition(rb.position + direction * currentSpeed * Time.deltaTime);
     }
     void OnCollisionEnter(Collision collision)
     {
-
         isGrounded = true;
         anim.SetBool("jump", false);
         anim.SetBool("floating", false);

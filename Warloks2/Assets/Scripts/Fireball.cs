@@ -10,7 +10,7 @@ public class Fireball : MonoBehaviourPunCallbacks
     PhotonDestroy photonDestroy;
     private int ownerId;
     [SerializeField] GameObject[] particles;
-  public  Vector3 desiredPosition;
+    public  Vector3 desiredPosition;
     void Start()
     {
         photonDestroy = GetComponent<PhotonDestroy>();

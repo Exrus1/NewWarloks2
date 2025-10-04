@@ -21,14 +21,21 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
     public Transform shoot;
     public GameObject fireballPrefab;
     public GameObject electricBallPrefab; // Добавлено для ElectricBall
+    public GameObject waterExplosionPrefab; // Добавлено для WaterExplosion
     PhotonDestroy photonDestroy;
     PlayerController playerController;
     PositionalSoundSync positionalSound;
     Transform marker;
 
     [SerializeField] float ElectricBallCooldown;
-     float ElectricBallTimer;
+    float ElectricBallTimer;
     public bool canCastElectricBall = true;
+
+    // Добавлено для WaterExplosion
+    [SerializeField] float waterExplosionCooldown;
+    float waterExplosionTimer;
+    public bool canCastWaterExplosion = true;
+
     private void Start()
     {
         defaultMaterial = mesh.material;
@@ -124,7 +131,7 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
 
     public void CastElectricBall()
     {
-      
+
         if (!photonView.IsMine) return;
         canCastElectricBall = false;
         // Создаем электрический шар из префаба
@@ -140,6 +147,22 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         positionalSound.PlaySoundAtPosition(4, transform.position);
         eb.desiredPosition = marker.transform.position;
         eb.SetOwner(photonView.Owner.ActorNumber);
+    }
+
+    // Добавлено для WaterExplosion
+    public void CastWaterExplosion()
+    {
+        if (!photonView.IsMine) return;
+        canCastWaterExplosion = false;
+
+        // Создаем водяной взрыв в позиции маркера
+        GameObject waterExplosion = PhotonNetwork.Instantiate(
+            waterExplosionPrefab.name,
+            marker.position,
+            Quaternion.identity
+        );
+        WaterExplosion wE = waterExplosion.GetComponent<WaterExplosion>();
+        wE.SetOwner(photonView.Owner.ActorNumber);
     }
 
     [PunRPC]
@@ -178,17 +201,47 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         eb.desiredPosition = marker.transform.position;
         eb.SetOwner(photonView.Owner.ActorNumber);
     }
+
+    // Добавлено для WaterExplosion
+    [PunRPC]
+    void CastWaterExplosionPUN()
+    {
+        if (!photonView.IsMine) return;
+        canCastWaterExplosion = false;
+
+        // Создаем водяной взрыв в позиции маркера
+        GameObject waterExplosion = PhotonNetwork.Instantiate(
+            waterExplosionPrefab.name,
+            marker.position,
+            Quaternion.identity
+        );
+        WaterExplosion wE = waterExplosion.GetComponent<WaterExplosion>();
+        wE.SetOwner(photonView.Owner.ActorNumber);
+
+    }
+
     private void FixedUpdate()
     {
-       
+        // Cooldown для ElectricBall
         if (ElectricBallTimer > ElectricBallCooldown)
         {
             ElectricBallTimer = 0;
             canCastElectricBall = true;
         }
-        else 
+        else
         {
             ElectricBallTimer += Time.deltaTime;
+        }
+
+        // Добавлено: Cooldown для WaterExplosion
+        if (waterExplosionTimer > waterExplosionCooldown)
+        {
+            waterExplosionTimer = 0;
+            canCastWaterExplosion = true;
+        }
+        else
+        {
+            waterExplosionTimer += Time.deltaTime;
         }
     }
 }
