@@ -3753,6 +3753,9 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 1
     Name: death
+  - Type: 4
+    SynchronizeType: 0
+    Name: electricBallCast
   m_SynchronizeLayers:
   - SynchronizeType: 1
     LayerIndex: 0
@@ -3814,6 +3817,9 @@ MonoBehaviour:
   mesh: {fileID: 8072446503029256905}
   shoot: {fileID: 1355688968707254071}
   fireballPrefab: {fileID: 7649195763047976666, guid: a5e8e2a08a2160d4ea845275024b38dd, type: 3}
+  electricBallPrefab: {fileID: 838146730235566227, guid: d40e753ca6cea1b43895da1b5ee533bb, type: 3}
+  ElectricBallCooldown: 10
+  canCastElectricBall: 1
 --- !u!114 &-6178703625101713120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3857,6 +3863,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 79ad851332ce2de4b88b2c0438ef93d7, type: 3}
   - {fileID: 8300000, guid: 705eb23b09bec1f4f86ed3dc29fda029, type: 3}
   - {fileID: 8300000, guid: 76fb4bfff521aa2498252e57a33256e9, type: 3}
+  - {fileID: 8300000, guid: 91bcbd61596f6ef4bb391f3bed4534cb, type: 3}
 --- !u!82 &2858483368074224264
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4367,6 +4374,22 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1287518675939394351, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+      propertyPath: buttons.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287518675939394351, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+      propertyPath: keys_text.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287518675939394351, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+      propertyPath: 'buttons.Array.data[4]'
+      value: 
+      objectReference: {fileID: 7678667438072455391}
+    - target: {fileID: 1287518675939394351, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+      propertyPath: 'keys_text.Array.data[4]'
+      value: 
+      objectReference: {fileID: 4230625942272420047}
     - target: {fileID: 3123395201125587166, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
       propertyPath: m_Name
       value: SettingsMenu
@@ -4464,11 +4487,33 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+--- !u!114 &4230625942272420047 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2162650578804484430, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+  m_PrefabInstance: {fileID: 2645148859161641345}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &5892868591560769591 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8463064265968140726, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
   m_PrefabInstance: {fileID: 2645148859161641345}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7678667438072455391 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5631029528046788958, guid: 8980d615b239f7f45b92e29d402ed436, type: 3}
+  m_PrefabInstance: {fileID: 2645148859161641345}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1001 &2816176451758981543
 PrefabInstance:
   m_ObjectHideFlags: 0

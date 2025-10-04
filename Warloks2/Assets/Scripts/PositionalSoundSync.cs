@@ -6,7 +6,7 @@ public class PositionalSoundSync : MonoBehaviourPunCallbacks
 {
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip[] footSteps;
-    public AudioClip[] sfx;//firebal, invision, teleport,teleportCharging
+    public AudioClip[] sfx;//firebal, invision, teleport,teleportCharging,electroball
     private void Start()
     {
         SoundManager.SFXEvent += ChangeVolume; 

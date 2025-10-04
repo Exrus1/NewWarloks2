@@ -54,11 +54,7 @@ public class Fireball : MonoBehaviourPunCallbacks
                 health.StartCoroutine(health.GradualDamage(lifetime,damage));
                 SetNetworkParent(other.transform);
                 GetComponent<BoxCollider>().enabled = false;
-                transform.localScale = Vector3.one*0.5f;
-                foreach (GameObject particle in particles)
-                {
-                    particle.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-                }
+               
                
             }
         }
@@ -79,6 +75,11 @@ public class Fireball : MonoBehaviourPunCallbacks
         {
             transform.SetParent(parentView.transform);
             transform.localPosition = new Vector3(Random.Range(-0.15f,0.15f), Random.Range(0.5f, 1.5f), Random.Range(-0.15f, 0.15f));
+        }
+        transform.localScale = Vector3.one * 0.5f;
+        foreach (GameObject particle in particles)
+        {
+            particle.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         }
         enabled = false;
     }

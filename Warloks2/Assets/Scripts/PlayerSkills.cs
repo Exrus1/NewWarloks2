@@ -2,19 +2,17 @@
 using Photon.Pun;
 using UnityEngine;
 
-
-
 public class PlayerSkills : MonoBehaviourPunCallbacks
 {
     //ТЕЛЕПОРТ
     [SerializeField] float teleportDelay;
     [SerializeField] float teleportCooldown;
-    bool teleportIsReady=true;
+    bool teleportIsReady = true;
     [SerializeField] GameObject teleportParticle;
     //ИНВИЗ
     [SerializeField] float invisibleDuration;
     [SerializeField] float invisibleCooldown;
-     bool  invisibleIsReady = true;
+    bool invisibleIsReady = true;
     [SerializeField] Material invisibleMaterial;
     [SerializeField] LayerMask defaultMask;
     [SerializeField] LayerMask invisibleMask;
@@ -22,10 +20,15 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
     Material defaultMaterial;
     public Transform shoot;
     public GameObject fireballPrefab;
+    public GameObject electricBallPrefab; // Добавлено для ElectricBall
     PhotonDestroy photonDestroy;
     PlayerController playerController;
     PositionalSoundSync positionalSound;
     Transform marker;
+
+    [SerializeField] float ElectricBallCooldown;
+     float ElectricBallTimer;
+    public bool canCastElectricBall = true;
     private void Start()
     {
         defaultMaterial = mesh.material;
@@ -35,8 +38,9 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         marker = playerController.marker.transform;
         positionalSound = GetComponent<PositionalSoundSync>();
     }
-    public IEnumerator Teleport(Vector3 pos) 
-    {if (teleportIsReady)
+    public IEnumerator Teleport(Vector3 pos)
+    {
+        if (teleportIsReady)
         {
             teleportIsReady = false;
             positionalSound.PlaySoundAtPosition(3, transform.position);
@@ -47,7 +51,7 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
           transform.position,
           transform.rotation
       );
-            photonDestroy.PunDestroy(tp, 3);
+            photonDestroy.PunDestroy(tp, 1f);
 
             transform.position = pos;
             positionalSound.PlaySoundAtPosition(2, transform.position);
@@ -56,15 +60,15 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
           transform.position,
           transform.rotation
       );
-            photonDestroy.PunDestroy(tp2, 3);
+            photonDestroy.PunDestroy(tp2, 1f);
             yield return new WaitForSeconds(teleportCooldown);
-            
+
             teleportIsReady = true;
         }
     }
     public IEnumerator Invisible()
     {
-        if (invisibleIsReady&&photonView.IsMine)
+        if (invisibleIsReady && photonView.IsMine)
         {
             photonView.RPC("SetInvision", RpcTarget.All);
             positionalSound.PlaySoundAtPosition(1, transform.position);
@@ -76,7 +80,7 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         }
     }
     [PunRPC]
-     void SetInvision()
+    void SetInvision()
     {
         gameObject.layer = 6;
         foreach (Transform child in gameObject.transform)
@@ -96,7 +100,7 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         {
             child.gameObject.layer = 0;
         }
-        
+
         playerController.cam.cullingMask = defaultMask;
         mesh.material = defaultMaterial;
     }
@@ -118,6 +122,25 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
         fb.SetOwner(photonView.Owner.ActorNumber);
     }
 
+    public void CastElectricBall()
+    {
+      
+        if (!photonView.IsMine) return;
+        canCastElectricBall = false;
+        // Создаем электрический шар из префаба
+        GameObject electricBall = PhotonNetwork.Instantiate(
+            electricBallPrefab.name,
+            shoot.position,
+            transform.rotation
+        );
+
+        // Получаем компонент ElectricBall
+        ElectricBall eb = electricBall.GetComponent<ElectricBall>();
+
+        positionalSound.PlaySoundAtPosition(4, transform.position);
+        eb.desiredPosition = marker.transform.position;
+        eb.SetOwner(photonView.Owner.ActorNumber);
+    }
 
     [PunRPC]
     void CastFireballPUN()
@@ -136,7 +159,36 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
 
         fb.desiredPosition = marker.transform.position;
         fb.SetOwner(photonView.Owner.ActorNumber);
-
     }
 
+    [PunRPC]
+    void CastElectricBallPUN()
+    {
+        if (!photonView.IsMine) return;
+        // Создаем электрический шар из префаба
+        GameObject electricBall = PhotonNetwork.Instantiate(
+            electricBallPrefab.name,
+            marker.position,
+            transform.rotation
+        );
+
+        // Получаем компонент ElectricBall
+        ElectricBall eb = electricBall.GetComponent<ElectricBall>();
+
+        eb.desiredPosition = marker.transform.position;
+        eb.SetOwner(photonView.Owner.ActorNumber);
+    }
+    private void FixedUpdate()
+    {
+       
+        if (ElectricBallTimer > ElectricBallCooldown)
+        {
+            ElectricBallTimer = 0;
+            canCastElectricBall = true;
+        }
+        else 
+        {
+            ElectricBallTimer += Time.deltaTime;
+        }
+    }
 }

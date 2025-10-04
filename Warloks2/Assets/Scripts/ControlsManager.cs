@@ -10,6 +10,7 @@ public class ControlsManager : MonoBehaviour
     public static KeyCode Fireball = KeyCode.Mouse0;
     public static KeyCode Invisible = KeyCode.Q;
     public static KeyCode Teleport = KeyCode.T;
+    public static KeyCode ElectricBall = KeyCode.E; // Добавлено для ElectricBall
 
     KeyCode currentControl;
     public static event Action openMenuEvent;
@@ -22,6 +23,7 @@ public class ControlsManager : MonoBehaviour
     private const string FIREBALL_KEY = "FireballKey";
     private const string INVISIBLE_KEY = "InvisibleKey";
     private const string TELEPORT_KEY = "TeleportKey";
+    private const string ELECTRIC_BALL_KEY = "ElectricBallKey"; // Добавлено для ElectricBall
     [SerializeField] Image[] buttons;
     void TextUpdate(int i, string str)
     {
@@ -39,7 +41,7 @@ public class ControlsManager : MonoBehaviour
         StopAllCoroutines();
 
         buttons[i].color = Color.red;
-      
+
         StartCoroutine(Cor(i));
     }
 
@@ -73,6 +75,10 @@ public class ControlsManager : MonoBehaviour
                     case 3:
                         Teleport = keyCode;
                         SaveControl(TELEPORT_KEY, keyCode);
+                        break;
+                    case 4: // Добавлено для ElectricBall
+                        ElectricBall = keyCode;
+                        SaveControl(ELECTRIC_BALL_KEY, keyCode);
                         break;
                 }
                 TextUpdate(i, GetKeyDisplayName(keyCode));
@@ -112,6 +118,11 @@ public class ControlsManager : MonoBehaviour
             Teleport = (KeyCode)PlayerPrefs.GetInt(TELEPORT_KEY);
         else
             SaveControl(TELEPORT_KEY, Teleport);
+
+        if (PlayerPrefs.HasKey(ELECTRIC_BALL_KEY)) // Добавлено для ElectricBall
+            ElectricBall = (KeyCode)PlayerPrefs.GetInt(ELECTRIC_BALL_KEY);
+        else
+            SaveControl(ELECTRIC_BALL_KEY, ElectricBall);
     }
 
     // Обновление всех текстовых полей
@@ -121,6 +132,7 @@ public class ControlsManager : MonoBehaviour
         TextUpdate(1, GetKeyDisplayName(Fireball));
         TextUpdate(2, GetKeyDisplayName(Invisible));
         TextUpdate(3, GetKeyDisplayName(Teleport));
+        TextUpdate(4, GetKeyDisplayName(ElectricBall)); // Добавлено для ElectricBall
     }
 
     // Сброс к настройкам по умолчанию
@@ -130,11 +142,13 @@ public class ControlsManager : MonoBehaviour
         Fireball = KeyCode.Mouse0;
         Invisible = KeyCode.Q;
         Teleport = KeyCode.T;
+        ElectricBall = KeyCode.E; // Добавлено для ElectricBall
 
         SaveControl(JUMP_KEY, Jump);
         SaveControl(FIREBALL_KEY, Fireball);
         SaveControl(INVISIBLE_KEY, Invisible);
         SaveControl(TELEPORT_KEY, Teleport);
+        SaveControl(ELECTRIC_BALL_KEY, ElectricBall); // Добавлено для ElectricBall
 
         UpdateAllTexts();
     }
@@ -146,6 +160,7 @@ public class ControlsManager : MonoBehaviour
         PlayerPrefs.DeleteKey(FIREBALL_KEY);
         PlayerPrefs.DeleteKey(INVISIBLE_KEY);
         PlayerPrefs.DeleteKey(TELEPORT_KEY);
+        PlayerPrefs.DeleteKey(ELECTRIC_BALL_KEY); // Добавлено для ElectricBall
         PlayerPrefs.Save();
 
         ResetToDefaults();

@@ -4,8 +4,6 @@ using UnityEngine;
 
 public  class PhotonDestroy : MonoBehaviourPunCallbacks
 {
-
-
     public  void PunDestroy(GameObject go,float timeToKill) 
     {
 
