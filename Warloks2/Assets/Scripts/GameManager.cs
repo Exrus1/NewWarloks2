@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         GameObject player = PhotonNetwork.Instantiate(
             playerPrefab.name,
-            new Vector3(Random.value*10,50, Random.value * 10),
+            new Vector3(Random.Range(-25,25),50, Random.Range(25, 80)),
             Quaternion.identity
         );
 
