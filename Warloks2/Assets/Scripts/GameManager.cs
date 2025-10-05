@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Start()
     {
         musicManager = FindAnyObjectByType<SoundManager>();
-        Physics.gravity = new Vector3(0, Physics.gravity.y * gravity, 0);
+        Physics.gravity = new Vector3(0, -9.81f * gravity, 0);
         if (PhotonNetwork.IsConnectedAndReady)
         {
             SpawnPlayer();
