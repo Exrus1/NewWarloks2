@@ -9853,9 +9853,6 @@ MonoBehaviour:
   - {fileID: 7649195763047976666}
   - {fileID: 8115318344280406075}
   - {fileID: 7609606792243586413}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   desiredPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &767426294622219806
 MonoBehaviour:

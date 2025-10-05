@@ -88,8 +88,7 @@ public class Fireball : MonoBehaviourPunCallbacks
     {
         int parentViewId = newParent != null ? newParent.GetComponent<PhotonView>().ViewID : -1;
 
-        // Локальное применение
-        transform.SetParent(newParent);
+       
 
         // Синхронизация с другими клиентами
         photonView.RPC("RPC_SetParent", RpcTarget.All, parentViewId);
