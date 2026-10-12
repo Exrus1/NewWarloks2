@@ -12,7 +12,7 @@ public class ControlsManager : MonoBehaviour
     public static KeyCode Invisible = KeyCode.Q;
     public static KeyCode Teleport = KeyCode.T;
     public static KeyCode ElectricBall = KeyCode.E;
-    public static KeyCode WaterExplosion = KeyCode.V; // Добавлено для Water Explosion
+    public static KeyCode WaterExplosion = KeyCode.V;
 
     KeyCode currentControl;
     public static event Action openMenuEvent;
@@ -20,13 +20,13 @@ public class ControlsManager : MonoBehaviour
 
     [SerializeField] TMP_Text[] keys_text;
 
-    // Ключи для сохранения в PlayerPrefs
+ 
     private const string JUMP_KEY = "JumpKey";
     private const string FIREBALL_KEY = "FireballKey";
     private const string INVISIBLE_KEY = "InvisibleKey";
     private const string TELEPORT_KEY = "TeleportKey";
     private const string ELECTRIC_BALL_KEY = "ElectricBallKey";
-    private const string WATER_EXPLOSION_KEY = "WaterExplosionKey"; // Добавлено для Water Explosion
+    private const string WATER_EXPLOSION_KEY = "WaterExplosionKey"; 
     [SerializeField] Image[] buttons;
     void TextUpdate(int i, string str)
     {
@@ -50,13 +50,12 @@ public class ControlsManager : MonoBehaviour
 
     IEnumerator Cor(int i)
     {
-        // Ждем любое нажатие
+    
         while (!Input.anyKeyDown)
         {
             yield return null;
         }
 
-        // Ищем конкретную нажатую клавишу
         foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
         {
             if (Input.GetKeyDown(keyCode) && keyCode != KeyCode.None)
@@ -83,7 +82,7 @@ public class ControlsManager : MonoBehaviour
                         ElectricBall = keyCode;
                         SaveControl(ELECTRIC_BALL_KEY, keyCode);
                         break;
-                    case 5: // Добавлено для Water Explosion
+                    case 5:
                         WaterExplosion = keyCode;
                         SaveControl(WATER_EXPLOSION_KEY, keyCode);
                         break;
@@ -96,20 +95,20 @@ public class ControlsManager : MonoBehaviour
 
     }
 
-    // Сохранение управления
+  
     private void SaveControl(string key, KeyCode value)
     {
         PlayerPrefs.SetInt(key, (int)value);
-        PlayerPrefs.Save(); // Важно вызывать Save для немедленного сохранения
+        PlayerPrefs.Save(); 
     }
 
-    // Загрузка управления
+  
     private void LoadControls()
     {
         if (PlayerPrefs.HasKey(JUMP_KEY))
             Jump = (KeyCode)PlayerPrefs.GetInt(JUMP_KEY);
         else
-            SaveControl(JUMP_KEY, Jump); // Сохраняем значение по умолчанию
+            SaveControl(JUMP_KEY, Jump); 
 
         if (PlayerPrefs.HasKey(FIREBALL_KEY))
             Fireball = (KeyCode)PlayerPrefs.GetInt(FIREBALL_KEY);
@@ -131,13 +130,13 @@ public class ControlsManager : MonoBehaviour
         else
             SaveControl(ELECTRIC_BALL_KEY, ElectricBall);
 
-        if (PlayerPrefs.HasKey(WATER_EXPLOSION_KEY)) // Добавлено для Water Explosion
+        if (PlayerPrefs.HasKey(WATER_EXPLOSION_KEY)) 
             WaterExplosion = (KeyCode)PlayerPrefs.GetInt(WATER_EXPLOSION_KEY);
         else
             SaveControl(WATER_EXPLOSION_KEY, WaterExplosion);
     }
 
-    // Обновление всех текстовых полей
+
     private void UpdateAllTexts()
     {
         TextUpdate(0, GetKeyDisplayName(Jump));
@@ -145,10 +144,10 @@ public class ControlsManager : MonoBehaviour
         TextUpdate(2, GetKeyDisplayName(Invisible));
         TextUpdate(3, GetKeyDisplayName(Teleport));
         TextUpdate(4, GetKeyDisplayName(ElectricBall));
-        TextUpdate(5, GetKeyDisplayName(WaterExplosion)); // Добавлено для Water Explosion
+        TextUpdate(5, GetKeyDisplayName(WaterExplosion)); 
     }
 
-    // Сброс к настройкам по умолчанию
+    
     public void ResetToDefaults()
     {
         Jump = KeyCode.Space;
@@ -156,19 +155,19 @@ public class ControlsManager : MonoBehaviour
         Invisible = KeyCode.Q;
         Teleport = KeyCode.T;
         ElectricBall = KeyCode.E;
-        WaterExplosion = KeyCode.R; // Добавлено для Water Explosion
+        WaterExplosion = KeyCode.R;
 
         SaveControl(JUMP_KEY, Jump);
         SaveControl(FIREBALL_KEY, Fireball);
         SaveControl(INVISIBLE_KEY, Invisible);
         SaveControl(TELEPORT_KEY, Teleport);
         SaveControl(ELECTRIC_BALL_KEY, ElectricBall);
-        SaveControl(WATER_EXPLOSION_KEY, WaterExplosion); // Добавлено для Water Explosion
+        SaveControl(WATER_EXPLOSION_KEY, WaterExplosion); 
 
         UpdateAllTexts();
     }
 
-    // Удаление всех сохраненных настроек (для отладки)
+   
     public void ClearAllSaves()
     {
         PlayerPrefs.DeleteKey(JUMP_KEY);
@@ -176,7 +175,7 @@ public class ControlsManager : MonoBehaviour
         PlayerPrefs.DeleteKey(INVISIBLE_KEY);
         PlayerPrefs.DeleteKey(TELEPORT_KEY);
         PlayerPrefs.DeleteKey(ELECTRIC_BALL_KEY);
-        PlayerPrefs.DeleteKey(WATER_EXPLOSION_KEY); // Добавлено для Water Explosion
+        PlayerPrefs.DeleteKey(WATER_EXPLOSION_KEY); 
         PlayerPrefs.Save();
 
         ResetToDefaults();

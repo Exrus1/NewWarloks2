@@ -1,17 +1,22 @@
-using System.Collections;
-using Photon.Pun;
 using UnityEngine;
 
-public  class PhotonDestroy : MonoBehaviourPunCallbacks
+/// <summary>Legacy name retained so existing prefab references keep working; forwards to NetworkDespawn.</summary>
+public class PhotonDestroy : MonoBehaviour
 {
-    public  void PunDestroy(GameObject go,float timeToKill) 
-    {
+    NetworkDespawn networkDespawn;
 
-        StartCoroutine(Destr(go, timeToKill));
-    }
-    IEnumerator Destr(GameObject go, float timeToKill)
+    void Awake()
     {
-        yield return new WaitForSeconds(timeToKill);
-        PhotonNetwork.Destroy(go);
+        networkDespawn = GetComponent<NetworkDespawn>();
+        if (networkDespawn == null)
+            networkDespawn = gameObject.AddComponent<NetworkDespawn>();
+    }
+
+    public void PunDestroy(GameObject go, float timeToKill)
+    {
+        if (networkDespawn == null)
+            networkDespawn = GetComponent<NetworkDespawn>();
+        if (networkDespawn != null)
+            networkDespawn.DespawnAfter(go, timeToKill);
     }
 }

@@ -1,19 +1,18 @@
-using Photon.Pun;
+using FishNet.Object;
 using UnityEngine;
 
-public class BackToLobby : MonoBehaviourPunCallbacks
+public class BackToLobby : NetworkBehaviour
 {
-   
-    void Start()
+    public override void OnStartClient()
     {
-        if (!PhotonNetwork.IsMasterClient)
-        {
+        if (!IsServerStarted)
             gameObject.SetActive(false);
-        }
     }
 
-    public void ChangeScene() 
+    public void ChangeScene()
     {
-        PhotonNetwork.LoadLevel("Lobby");
+        if (!IsServerStarted)
+            return;
+        NetworkSceneHelper.LoadGlobalReplace("Lobby");
     }
 }

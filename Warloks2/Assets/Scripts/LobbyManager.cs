@@ -1,118 +1,197 @@
-using UnityEngine;
-
-using Photon.Pun;
-
-using TMPro;
-using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
+using FishNet;
+using FishNet.Connection;
+using FishNet.Object;
+using FishNet.Transporting;
+using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
-public class LobbyManager : MonoBehaviourPunCallbacks
+public class LobbyManager : NetworkBehaviour
 {
     [SerializeField] TMP_Text ChatText;
     [SerializeField] TMP_InputField InputText;
     [SerializeField] TMP_Text PlayersText;
-
     [SerializeField] GameObject startButton;
-    SoundManager musicManager;
     [SerializeField] Image blackOut;
-    void Start()
+
+    SoundManager musicManager;
+    readonly Dictionary<int, string> nicknames = new();
+
+    public override void OnStartNetwork()
     {
-        
+        musicManager = FindAnyObjectByType<SoundManager>();
         Cursor.lockState = CursorLockMode.None;
         StartCoroutine(BlackOut(2));
-        musicManager = FindAnyObjectByType<SoundManager>();
+
+        if (startButton != null)
+            startButton.SetActive(IsServerStarted);
+
+        NetworkManager.ServerManager.OnRemoteConnectionState += OnRemoteConnectionState;
+        NetworkManager.ClientManager.RegisterBroadcast<NicknameBroadcast>(OnNicknameBroadcast);
+        NetworkManager.ClientManager.RegisterBroadcast<NicknameListBroadcast>(OnNicknameListBroadcast);
+        NetworkManager.ServerManager.RegisterBroadcast<NicknameBroadcast>(OnServerNicknameBroadcast);
+    }
+
+    public override void OnStopNetwork()
+    {
+        if (NetworkManager == null)
+            return;
+        NetworkManager.ServerManager.OnRemoteConnectionState -= OnRemoteConnectionState;
+        NetworkManager.ClientManager.UnregisterBroadcast<NicknameBroadcast>(OnNicknameBroadcast);
+        NetworkManager.ClientManager.UnregisterBroadcast<NicknameListBroadcast>(OnNicknameListBroadcast);
+        NetworkManager.ServerManager.UnregisterBroadcast<NicknameBroadcast>(OnServerNicknameBroadcast);
+    }
+
+    public override void OnStartClient()
+    {
+        NicknameBroadcast nb = new() { Nickname = PlayerSession.Nickname };
+        NetworkManager.ClientManager.Broadcast(nb);
+    }
+
+    public override void OnStartServer()
+    {
+        if (IsClientStarted)
+            nicknames[LocalConnection.ClientId] = PlayerSession.Nickname;
         RefreshPlayers();
-        if (!PhotonNetwork.IsMasterClient)
+    }
+
+    void OnRemoteConnectionState(NetworkConnection conn, RemoteConnectionStateArgs args)
+    {
+        if (!IsServerStarted)
+            return;
+
+        if (args.ConnectionState == RemoteConnectionState.Stopped)
         {
-            startButton.SetActive(false);
+            string name = nicknames.TryGetValue(conn.ClientId, out string n) ? n : ("?????" + conn.ClientId);
+            nicknames.Remove(conn.ClientId);
+            ObserversLog(name + " ????? ?? ???????");
+            RefreshPlayers();
+            if (startButton != null)
+                startButton.SetActive(true);
+        }
+        else if (args.ConnectionState == RemoteConnectionState.Started)
+        {
+            RefreshPlayers();
         }
     }
+
+    void OnServerNicknameBroadcast(NetworkConnection conn, NicknameBroadcast msg, Channel channel)
+    {
+        string nick = string.IsNullOrWhiteSpace(msg.Nickname) ? ("?????" + conn.ClientId) : msg.Nickname.Trim();
+        bool isNew = !nicknames.ContainsKey(conn.ClientId);
+        nicknames[conn.ClientId] = nick;
+        if (isNew)
+            ObserversLog(nick + " ????? ? ???????");
+        RefreshPlayers();
+    }
+
+    void OnNicknameBroadcast(NicknameBroadcast msg, Channel channel) { }
+
+    void OnNicknameListBroadcast(NicknameListBroadcast msg, Channel channel)
+    {
+        nicknames.Clear();
+        if (msg.ClientIds == null || msg.Nicknames == null)
+            return;
+        int count = Mathf.Min(msg.ClientIds.Length, msg.Nicknames.Length);
+        for (int i = 0; i < count; i++)
+            nicknames[msg.ClientIds[i]] = msg.Nicknames[i];
+        ShowPlayersLocal();
+    }
+
     public void StartGame()
     {
-        photonView.RPC("BattleMusic", RpcTarget.All);
-
-      
-     
+        if (!IsServerStarted)
+            return;
+        ObserversBattleMusic();
     }
-    [PunRPC]
-    public void BattleMusic()
+
+    [ObserversRpc]
+    void ObserversBattleMusic()
     {
-        musicManager.PlayBattleMusic();
+        if (musicManager != null)
+            musicManager.PlayBattleMusic();
         StartCoroutine(BlackOut(1));
+    }
 
-    }
-    public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
-    {
-        Log(otherPlayer.NickName + " вышел из комнаты");
-        RefreshPlayers();
-        if (PhotonNetwork.IsMasterClient)
-        {
-            startButton.SetActive(true);
-        }
-    }
-    public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
-    {
-        Log(newPlayer.NickName + " вошел в комнату");
-        RefreshPlayers();
-    }
-    
- 
     public void LeaveRoom()
     {
-          
-
         StartCoroutine(BlackOut(0));
     }
-    void Log(string message)
-    {
-        ChatText.text += "\n";
-        ChatText.text += message;
-    }
-   
-    public override void OnLeftRoom()
-    {
 
-        SceneManager.LoadScene(0);
-    }
-    
-    [PunRPC]
-    public void ShowMessage(string message, PhotonMessageInfo info)
+    void ObserversLog(string message)
     {
+        ObserversShowMessage(message);
+    }
+
+    [ObserversRpc]
+    void ObserversShowMessage(string message)
+    {
+        if (ChatText == null)
+            return;
         ChatText.text += "\n";
         ChatText.text += message;
     }
+
     public void Send()
     {
-        if (string.IsNullOrWhiteSpace(InputText.text)) { return; }
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            photonView.RPC("ShowMessage", RpcTarget.All, PhotonNetwork.NickName + ": " + InputText.text);
-            InputText.text = string.Empty;
-        }
+        if (InputText == null || string.IsNullOrWhiteSpace(InputText.text))
+            return;
+        if (!Input.GetKeyDown(KeyCode.Return))
+            return;
+
+        string line = PlayerSession.Nickname + ": " + InputText.text;
+        InputText.text = string.Empty;
+        SendChatServerRpc(line);
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    void SendChatServerRpc(string message)
+    {
+        ObserversShowMessage(message);
+    }
+
     void RefreshPlayers()
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (!IsServerStarted)
+            return;
+
+        List<int> ids = new();
+        List<string> names = new();
+        foreach (KeyValuePair<int, string> pair in nicknames)
         {
-            photonView.RPC("ShowPlayers", RpcTarget.All);
+            ids.Add(pair.Key);
+            names.Add(pair.Value);
+        }
+
+        NicknameListBroadcast list = new()
+        {
+            ClientIds = ids.ToArray(),
+            Nicknames = names.ToArray()
+        };
+        NetworkManager.ServerManager.Broadcast(list);
+        ShowPlayersLocal();
+    }
+
+    void ShowPlayersLocal()
+    {
+        if (PlayersText == null)
+            return;
+        PlayersText.text = "РРіСЂРѕРєРё: ";
+        foreach (KeyValuePair<int, string> pair in nicknames)
+        {
+            PlayersText.text += "\n";
+            PlayersText.text += pair.Value;
         }
     }
 
-    [PunRPC]
-    public void ShowPlayers()
-    {
-        PlayersText.text = "Игроки: ";
-        foreach (Photon.Realtime.Player otherPlayer in PhotonNetwork.PlayerList)
-        {
-            PlayersText.text += "\n";
-            PlayersText.text += otherPlayer.NickName;
-        }
-    }
     IEnumerator BlackOut(int type)
     {
-       
-        if (type!=2)
+        if (blackOut == null)
+            yield break;
+
+        if (type != 2)
         {
             blackOut.raycastTarget = true;
             blackOut.color = new Color(0, 0, 0, 0.25f);
@@ -122,29 +201,26 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 yield return new WaitForSeconds(0.01f);
             }
         }
+
         switch (type)
         {
             case 0:
-                
-                PhotonNetwork.LeaveRoom();
-              
+                NetworkSceneHelper.DisconnectAndLoadMenu();
                 break;
             case 1:
-                PhotonNetwork.LoadLevel("Game");
+                if (IsServerStarted)
+                    NetworkSceneHelper.LoadGlobalReplace("Game");
                 break;
             case 2:
                 blackOut.raycastTarget = true;
                 blackOut.color = new Color(0, 0, 0, 1f);
                 while (blackOut.color.a > 0f)
                 {
-                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime*0.5f);
+                    blackOut.color -= new Color(0, 0, 0, Time.deltaTime * 0.5f);
                     yield return new WaitForSeconds(0.01f);
                 }
                 blackOut.raycastTarget = false;
                 break;
         }
-      
-
-
     }
 }

@@ -1,38 +1,47 @@
-﻿using Photon.Pun;
+﻿using FishNet.Object;
 using UnityEngine;
 
-public class ElectricBall : MonoBehaviourPunCallbacks
+public class ElectricBall : NetworkBehaviour
 {
     public float speed = 10f;
     public float damage = 30;
     public float lifetime = 5f;
     public GameObject explosionEffect;
-    PhotonDestroy photonDestroy;
-    private int ownerId;
-
+    NetworkDespawn networkDespawn;
+    int ownerId;
     public Vector3 desiredPosition;
-    private Vector3 flightDirection; // Добавлено для направления полета
-    private bool isMoving = true; // Добавлено для контроля движения
+    Vector3 flightDirection;
+    bool isMoving = true;
 
-    void Start()
+    public override void OnStartServer()
     {
-        photonDestroy = GetComponent<PhotonDestroy>();
-
-        if (!photonView.IsMine)
-        {
-            enabled = false;
-        }
-        photonDestroy.PunDestroy(gameObject, lifetime);
-
-        // Вычисляем направление полета к desiredPosition
+        networkDespawn = GetComponent<NetworkDespawn>();
+        if (networkDespawn != null)
+            networkDespawn.DespawnAfter(gameObject, lifetime);
         flightDirection = (desiredPosition - transform.position).normalized;
     }
 
-    private void FixedUpdate()
+    void Start()
     {
-        if (!isMoving) return;
+        flightDirection = (desiredPosition - transform.position).normalized;
+        if (!IsSpawned)
+            return;
+        if (!base.Owner.IsLocalClient)
+            enabled = false;
+    }
 
-        // Двигаемся по направлению к desiredPosition, но продолжаем лететь дальше
+    [ObserversRpc]
+    public void InitObserversRpc(Vector3 desired, int ownerClientId)
+    {
+        desiredPosition = desired;
+        ownerId = ownerClientId;
+        flightDirection = (desiredPosition - transform.position).normalized;
+    }
+
+    void FixedUpdate()
+    {
+        if (!IsOwner || !isMoving)
+            return;
         transform.position += flightDirection * speed * Time.deltaTime;
     }
 
@@ -43,32 +52,28 @@ public class ElectricBall : MonoBehaviourPunCallbacks
 
     void OnTriggerEnter(Collider other)
     {
-        if (!photonView.IsMine) return;
+        if (!IsOwner)
+            return;
 
-        // Игнорируем столкновение с собой
         if (other.CompareTag("Player"))
         {
-            PhotonView playerView = other.GetComponent<PhotonView>();
-            if (playerView != null && playerView.Owner.ActorNumber == ownerId)
+            NetworkObject playerNob = other.GetComponent<NetworkObject>();
+            if (playerNob != null && playerNob.OwnerId == ownerId)
                 return;
-        }
 
-        // Наносим урон игроку
-        if (other.CompareTag("Player"))
-        {
             Player health = other.GetComponent<Player>();
-
             if (health != null)
-            {
                 health.TakeDamage(damage);
-            }
         }
 
-        // Активируем эффект взрыва и останавливаем движение
-        explosionEffect.SetActive(true);
-       
-        GetComponent<SphereCollider>().enabled = false;
-        isMoving = false; // Останавливаем движение
-        photonDestroy.PunDestroy(gameObject, 0.5f);
+        if (explosionEffect != null)
+            explosionEffect.SetActive(true);
+
+        SphereCollider sphere = GetComponent<SphereCollider>();
+        if (sphere != null)
+            sphere.enabled = false;
+        isMoving = false;
+        if (networkDespawn != null)
+            networkDespawn.DespawnAfter(gameObject, 0.5f);
     }
 }

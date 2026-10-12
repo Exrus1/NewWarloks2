@@ -1,51 +1,64 @@
-
-using Photon.Pun;
+using FishNet.Object;
 using UnityEngine;
 
-public class PositionalSoundSync : MonoBehaviourPunCallbacks
+public class PositionalSoundSync : NetworkBehaviour
 {
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip[] footSteps;
-    public AudioClip[] sfx;//firebal, invision, teleport,teleportCharging,electroball
-    private void Start()
-    {
-        SoundManager.SFXEvent += ChangeVolume; 
-    }
-    void ChangeVolume(float volume) 
-    { 
-        audioSource.volume = volume;
-    }
-    public void PlaySoundAtPosition(int index,Vector3 position)
-    {
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip[] footSteps;
+    public AudioClip[] sfx;
 
-        audioSource.transform.position = position;//??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+    public override void OnStartClient()
+    {
+        SoundManager.SFXEvent += ChangeVolume;
+    }
+
+    void OnDestroy()
+    {
+        SoundManager.SFXEvent -= ChangeVolume;
+    }
+
+    void ChangeVolume(float volume)
+    {
+        if (audioSource != null)
+            audioSource.volume = volume;
+    }
+
+    public void PlaySoundAtPosition(int index, Vector3 position)
+    {
+        if (audioSource == null || sfx == null || index < 0 || index >= sfx.Length)
+            return;
+
+        audioSource.transform.position = position;
         audioSource.PlayOneShot(sfx[index]);
-
-        // Синхронизация с другими клиентами
-        photonView.RPC("RPC_PlaySoundAtPosition", RpcTarget.Others, index, position);
+        PlaySoundObserversRpc(index, position);
     }
 
-    [PunRPC]
-    void RPC_PlaySoundAtPosition(int index, Vector3 position)
+    [ObserversRpc(ExcludeOwner = true)]
+    void PlaySoundObserversRpc(int index, Vector3 position)
     {
+        if (audioSource == null || sfx == null || index < 0 || index >= sfx.Length)
+            return;
         audioSource.PlayOneShot(sfx[index]);
     }
+
     public void PlayFootSound()
     {
-       
+        if (audioSource == null || footSteps == null || footSteps.Length == 0)
+            return;
+
         audioSource.transform.position = transform.position;
-        int randIndex = Random.Range(0, footSteps.Length);
-        audioSource.clip = footSteps[3];
+        int soundIndex = Mathf.Min(3, footSteps.Length - 1);
+        audioSource.clip = footSteps[soundIndex];
         audioSource.pitch = Random.Range(1.25f, 1.75f);
         audioSource.Play();
-
-        // Синхронизация с другими клиентами
-        photonView.RPC("RPC_PlayFootSound", RpcTarget.Others, 3, transform.position);
+        PlayFootObserversRpc(soundIndex, transform.position);
     }
 
-    [PunRPC]
-    void RPC_PlayFootSound(int soundIndex, Vector3 position)
+    [ObserversRpc(ExcludeOwner = true)]
+    void PlayFootObserversRpc(int soundIndex, Vector3 position)
     {
+        if (audioSource == null || footSteps == null || soundIndex < 0 || soundIndex >= footSteps.Length)
+            return;
         audioSource.clip = footSteps[soundIndex];
         audioSource.Play();
     }

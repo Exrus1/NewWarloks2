@@ -1,120 +1,109 @@
-
-
-
 using System.Collections;
-using Photon.Pun;
+using FishNet.Object;
 using TMPro;
 using UnityEngine;
 
-
-
-public class Player : MonoBehaviourPunCallbacks
+public class Player : NetworkBehaviour
 {
-
     float health = 1000;
     bool isDead;
     [SerializeField] TMP_Text hpText;
-    Rigidbody rb;
     Animator anim;
     PlayerController controller;
     ThirdPersonCamera third;
-    [SerializeField]  Rigidbody[] childrenRb;
+    [SerializeField] Rigidbody[] childrenRb;
     [SerializeField] Collider[] colliders;
-  
-    void Start()
+
+    public override void OnStartClient()
     {
-      
         anim = GetComponent<Animator>();
-        hpText.text = health.ToString();
+        if (hpText != null)
+            hpText.text = health.ToString();
         controller = GetComponent<PlayerController>();
         third = GetComponent<ThirdPersonCamera>();
-        anim = GetComponent<Animator>();
-       rb = GetComponent<Rigidbody>();  
         foreach (Rigidbody rb in childrenRb)
-        {
             rb.isKinematic = true;
-            
-        }
         foreach (Collider col in colliders)
-        {
             col.enabled = false;
-           
-        }
-        if (!photonView.IsMine)
+
+        if (!IsOwner)
         {
-            //������� ������ � �������� ������ � ��������� �
-            transform.Find("Main Camera").gameObject.SetActive(false);
-            transform.Find("Canvas").gameObject.SetActive(false);
-            //��������� ������ PlayerController
-            this.enabled = false;
+            Transform cam = transform.Find("Main Camera");
+            if (cam != null)
+                cam.gameObject.SetActive(false);
+            Transform canvas = transform.Find("Canvas");
+            if (canvas != null)
+                canvas.gameObject.SetActive(false);
+            enabled = false;
         }
     }
-  public  IEnumerator GradualDamage(float duration,float damage) 
+
+    public IEnumerator GradualDamage(float duration, float damage)
     {
-        while (duration>0) 
-        { 
-            duration-=0.25f;
+        while (duration > 0)
+        {
+            duration -= 0.25f;
             TakeDamage(damage);
             yield return new WaitForSeconds(0.25f);
         }
     }
 
-
-
     public void TakeDamage(float damage)
     {
-       
-        if (isDead||photonView.IsMine ) return;
-
-        photonView.RPC("RPC_TakeDamage", RpcTarget.All, damage);
+        if (isDead || IsOwner)
+            return;
+        TakeDamageServerRpc(damage);
     }
-    [PunRPC]
-    void RPC_TakeDamage(float damage)
+
+    [ServerRpc(RequireOwnership = false)]
+    void TakeDamageServerRpc(float damage)
     {
-        if (isDead) return;
+        TakeDamageObserversRpc(damage);
+    }
+
+    [ObserversRpc]
+    void TakeDamageObserversRpc(float damage)
+    {
+        if (isDead)
+            return;
 
         health -= damage;
-        hpText.text = health.ToString("f0");
+        if (hpText != null)
+            hpText.text = health.ToString("f0");
 
         if (health <= 0)
-        {
             Die();
-        }
     }
+
     void Die()
     {
         isDead = true;
-       
 
-            foreach (Rigidbody rb in childrenRb)
-            {
-                rb.isKinematic = false;
-                rb.mass = 0.1f;
-                
-            }
-            foreach (Collider col in colliders)
-            {
-                col.enabled = true;
-
-
-            }
-            GetComponent<CapsuleCollider>().radius = 0.01f;
-        GetComponent<CapsuleCollider>().height = 0.01f;
-
-        //rb.AddForce(transform.TransformDirection(new Vector3(Random.Range(-1f,1f), 0, Random.Range(-1f, 1f))) * 1f, ForceMode.Impulse);
-        anim.enabled = false;
-
-        if (photonView.IsMine)
+        foreach (Rigidbody rb in childrenRb)
         {
-            controller.enabled = false;
-            third.enabled = false;
+            rb.isKinematic = false;
+            rb.mass = 0.1f;
+        }
+        foreach (Collider col in colliders)
+            col.enabled = true;
+
+        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        if (capsule != null)
+        {
+            capsule.radius = 0.01f;
+            capsule.height = 0.01f;
+        }
+
+        if (anim != null)
+            anim.enabled = false;
+
+        if (IsOwner)
+        {
+            if (controller != null)
+                controller.enabled = false;
+            if (third != null)
+                third.enabled = false;
             enabled = false;
         }
-           
-           
-        
     }
-   
- 
-  
 }

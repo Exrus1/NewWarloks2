@@ -1,15 +1,14 @@
 ﻿using System.Collections;
-using Photon.Pun;
+using FishNet.Object;
 using UnityEngine;
 
-public class PlayerSkills : MonoBehaviourPunCallbacks
+public class PlayerSkills : NetworkBehaviour
 {
-    //ТЕЛЕПОРТ
     [SerializeField] float teleportDelay;
     [SerializeField] float teleportCooldown;
     bool teleportIsReady = true;
-    [SerializeField] GameObject teleportParticle;
-    //ИНВИЗ
+    [SerializeField] NetworkObject teleportParticle;
+
     [SerializeField] float invisibleDuration;
     [SerializeField] float invisibleCooldown;
     bool invisibleIsReady = true;
@@ -18,11 +17,13 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
     [SerializeField] LayerMask invisibleMask;
     [SerializeField] SkinnedMeshRenderer mesh;
     Material defaultMaterial;
+
     public Transform shoot;
-    public GameObject fireballPrefab;
-    public GameObject electricBallPrefab; // Добавлено для ElectricBall
-    public GameObject waterExplosionPrefab; // Добавлено для WaterExplosion
-    PhotonDestroy photonDestroy;
+    public NetworkObject fireballPrefab;
+    public NetworkObject electricBallPrefab;
+    public NetworkObject waterExplosionPrefab;
+
+    NetworkDespawn networkDespawn;
     PlayerController playerController;
     PositionalSoundSync positionalSound;
     Transform marker;
@@ -31,217 +32,228 @@ public class PlayerSkills : MonoBehaviourPunCallbacks
     float ElectricBallTimer;
     public bool canCastElectricBall = true;
 
-    // Добавлено для WaterExplosion
     [SerializeField] float waterExplosionCooldown;
     float waterExplosionTimer;
     public bool canCastWaterExplosion = true;
 
-    private void Start()
+    public override void OnStartClient()
     {
-        defaultMaterial = mesh.material;
-
-        photonDestroy = GetComponent<PhotonDestroy>();
+        if (mesh != null)
+            defaultMaterial = mesh.material;
+        networkDespawn = GetComponent<NetworkDespawn>();
         playerController = GetComponent<PlayerController>();
-        marker = playerController.marker.transform;
+        if (playerController != null && playerController.marker != null)
+            marker = playerController.marker.transform;
         positionalSound = GetComponent<PositionalSoundSync>();
+        ResolvePrefabs();
     }
+
+    public override void OnStartServer()
+    {
+        ResolvePrefabs();
+    }
+
+    void ResolvePrefabs()
+    {
+        if (fireballPrefab == null)
+            fireballPrefab = LoadNob("Fireball");
+        if (electricBallPrefab == null)
+            electricBallPrefab = LoadNob("ElectricBall");
+        if (waterExplosionPrefab == null)
+            waterExplosionPrefab = LoadNob("WaterExplosion");
+        if (teleportParticle == null)
+            teleportParticle = LoadNob("TeleportEffect");
+    }
+
+    static NetworkObject LoadNob(string resourceName)
+    {
+        GameObject go = Resources.Load<GameObject>(resourceName);
+        return go != null ? go.GetComponent<NetworkObject>() : null;
+    }
+
     public IEnumerator Teleport(Vector3 pos)
     {
-        if (teleportIsReady)
-        {
-            teleportIsReady = false;
+        if (!IsOwner || !teleportIsReady)
+            yield break;
+
+        teleportIsReady = false;
+        if (positionalSound != null)
             positionalSound.PlaySoundAtPosition(3, transform.position);
 
-            yield return new WaitForSeconds(teleportDelay);
-            GameObject tp = PhotonNetwork.Instantiate(
-          teleportParticle.name,
-          transform.position,
-          transform.rotation
-      );
-            photonDestroy.PunDestroy(tp, 1f);
-
-            transform.position = pos;
-            positionalSound.PlaySoundAtPosition(2, transform.position);
-            GameObject tp2 = PhotonNetwork.Instantiate(
-          teleportParticle.name,
-          transform.position,
-          transform.rotation
-      );
-            photonDestroy.PunDestroy(tp2, 1f);
-            yield return new WaitForSeconds(teleportCooldown);
-
-            teleportIsReady = true;
-        }
+        yield return new WaitForSeconds(teleportDelay);
+        TeleportServerRpc(pos);
+        yield return new WaitForSeconds(teleportCooldown);
+        teleportIsReady = true;
     }
+
+    [ServerRpc]
+    void TeleportServerRpc(Vector3 pos)
+    {
+        SpawnTeleportEffect(transform.position);
+        transform.position = pos;
+        SpawnTeleportEffect(pos);
+        TeleportObserversRpc(pos);
+    }
+
+    [ObserversRpc(ExcludeOwner = true)]
+    void TeleportObserversRpc(Vector3 pos)
+    {
+        transform.position = pos;
+    }
+
+    void SpawnTeleportEffect(Vector3 position)
+    {
+        if (teleportParticle == null)
+            return;
+        NetworkObject nob = NetworkManager.GetPooledInstantiated(teleportParticle, position, transform.rotation, true);
+        ServerManager.Spawn(nob, Owner);
+        NetworkDespawn nd = nob.GetComponent<NetworkDespawn>();
+        if (nd != null)
+            nd.DespawnAfter(nob.gameObject, 1f);
+    }
+
     public IEnumerator Invisible()
     {
-        if (invisibleIsReady && photonView.IsMine)
-        {
-            photonView.RPC("SetInvision", RpcTarget.All);
-            positionalSound.PlaySoundAtPosition(1, transform.position);
-            yield return new WaitForSeconds(invisibleDuration);
-            positionalSound.PlaySoundAtPosition(1, transform.position);
-            photonView.RPC("ReSetInvision", RpcTarget.All);
-            yield return new WaitForSeconds(invisibleCooldown);
-            invisibleIsReady = true;
-        }
-    }
-    [PunRPC]
-    void SetInvision()
-    {
-        gameObject.layer = 6;
-        foreach (Transform child in gameObject.transform)
-        {
-            child.gameObject.layer = 6;
-        }
-        Material defaultMaterial = mesh.material;
-        invisibleIsReady = false;
-        playerController.cam.cullingMask = invisibleMask;
-        mesh.material = invisibleMaterial;
-    }
-    [PunRPC]
-    void ReSetInvision()
-    {
-        gameObject.layer = 0;
-        foreach (Transform child in gameObject.transform)
-        {
-            child.gameObject.layer = 0;
-        }
+        if (!invisibleIsReady || !IsOwner)
+            yield break;
 
-        playerController.cam.cullingMask = defaultMask;
-        mesh.material = defaultMaterial;
+        SetInvisionServerRpc(true);
+        if (positionalSound != null)
+            positionalSound.PlaySoundAtPosition(1, transform.position);
+        yield return new WaitForSeconds(invisibleDuration);
+        if (positionalSound != null)
+            positionalSound.PlaySoundAtPosition(1, transform.position);
+        SetInvisionServerRpc(false);
+        yield return new WaitForSeconds(invisibleCooldown);
+        invisibleIsReady = true;
     }
+
+    [ServerRpc]
+    void SetInvisionServerRpc(bool invisible)
+    {
+        SetInvisionObserversRpc(invisible);
+    }
+
+    [ObserversRpc]
+    void SetInvisionObserversRpc(bool invisible)
+    {
+        if (invisible)
+        {
+            invisibleIsReady = false;
+            gameObject.layer = 6;
+            foreach (Transform child in gameObject.transform)
+                child.gameObject.layer = 6;
+            if (playerController != null && playerController.cam != null)
+                playerController.cam.cullingMask = invisibleMask;
+            if (mesh != null && invisibleMaterial != null)
+                mesh.material = invisibleMaterial;
+        }
+        else
+        {
+            gameObject.layer = 0;
+            foreach (Transform child in gameObject.transform)
+                child.gameObject.layer = 0;
+            if (playerController != null && playerController.cam != null)
+                playerController.cam.cullingMask = defaultMask;
+            if (mesh != null && defaultMaterial != null)
+                mesh.material = defaultMaterial;
+        }
+    }
+
     public void CastFireball()
     {
-        if (!photonView.IsMine) return;
-        // ������� �������� ��� �� ������-�������
-        GameObject fireball = PhotonNetwork.Instantiate(
-            fireballPrefab.name,
-            shoot.position,
-            transform.rotation
-        );
+        if (!IsOwner || marker == null || shoot == null)
+            return;
+        CastFireballServerRpc(shoot.position, marker.position);
+        if (positionalSound != null)
+            positionalSound.PlaySoundAtPosition(0, transform.position);
+    }
 
-        // ��������� ������
-        Fireball fb = fireball.GetComponent<Fireball>();
-
-        positionalSound.PlaySoundAtPosition(0, transform.position);
-        fb.desiredPosition = marker.transform.position;
-        fb.SetOwner(photonView.Owner.ActorNumber);
+    [ServerRpc]
+    void CastFireballServerRpc(Vector3 spawnPos, Vector3 desired)
+    {
+        if (fireballPrefab == null)
+            return;
+        NetworkObject nob = NetworkManager.GetPooledInstantiated(fireballPrefab, spawnPos, transform.rotation, true);
+        Fireball fb = nob.GetComponent<Fireball>();
+        if (fb != null)
+        {
+            fb.desiredPosition = desired;
+            fb.SetOwner(Owner.ClientId);
+        }
+        ServerManager.Spawn(nob, Owner);
+        if (fb != null)
+            fb.InitObserversRpc(desired, Owner.ClientId);
     }
 
     public void CastElectricBall()
     {
-
-        if (!photonView.IsMine) return;
+        if (!IsOwner || marker == null || shoot == null)
+            return;
         canCastElectricBall = false;
-        // Создаем электрический шар из префаба
-        GameObject electricBall = PhotonNetwork.Instantiate(
-            electricBallPrefab.name,
-            shoot.position,
-            transform.rotation
-        );
-
-        // Получаем компонент ElectricBall
-        ElectricBall eb = electricBall.GetComponent<ElectricBall>();
-
-        positionalSound.PlaySoundAtPosition(4, transform.position);
-        eb.desiredPosition = marker.transform.position;
-        eb.SetOwner(photonView.Owner.ActorNumber);
+        CastElectricBallServerRpc(shoot.position, marker.position);
+        if (positionalSound != null)
+            positionalSound.PlaySoundAtPosition(4, transform.position);
     }
 
-    // Добавлено для WaterExplosion
+    [ServerRpc]
+    void CastElectricBallServerRpc(Vector3 spawnPos, Vector3 desired)
+    {
+        if (electricBallPrefab == null)
+            return;
+        NetworkObject nob = NetworkManager.GetPooledInstantiated(electricBallPrefab, spawnPos, transform.rotation, true);
+        ElectricBall eb = nob.GetComponent<ElectricBall>();
+        if (eb != null)
+        {
+            eb.desiredPosition = desired;
+            eb.SetOwner(Owner.ClientId);
+        }
+        ServerManager.Spawn(nob, Owner);
+        if (eb != null)
+            eb.InitObserversRpc(desired, Owner.ClientId);
+    }
+
     public void CastWaterExplosion()
     {
-        if (!photonView.IsMine) return;
+        if (!IsOwner || marker == null)
+            return;
         canCastWaterExplosion = false;
-
-        // Создаем водяной взрыв в позиции маркера
-        GameObject waterExplosion = PhotonNetwork.Instantiate(
-            waterExplosionPrefab.name,
-            marker.position,
-            Quaternion.identity
-        );
-        WaterExplosion wE = waterExplosion.GetComponent<WaterExplosion>();
-        wE.SetOwner(photonView.Owner.ActorNumber);
+        CastWaterExplosionServerRpc(marker.position);
     }
 
-    [PunRPC]
-    void CastFireballPUN()
+    [ServerRpc]
+    void CastWaterExplosionServerRpc(Vector3 pos)
     {
-        if (!photonView.IsMine) return;
-        // ������� �������� ��� �� ������-�������
-        GameObject fireball = PhotonNetwork.Instantiate(
-            fireballPrefab.name,
-            marker.position,
-            transform.rotation
-        );
-
-        // ��������� ������
-        Fireball fb = fireball.GetComponent<Fireball>();
-
-
-        fb.desiredPosition = marker.transform.position;
-        fb.SetOwner(photonView.Owner.ActorNumber);
+        if (waterExplosionPrefab == null)
+            return;
+        NetworkObject nob = NetworkManager.GetPooledInstantiated(waterExplosionPrefab, pos, Quaternion.identity, true);
+        WaterExplosion we = nob.GetComponent<WaterExplosion>();
+        if (we != null)
+            we.SetOwner(Owner.ClientId);
+        ServerManager.Spawn(nob, Owner);
+        if (we != null)
+            we.InitObserversRpc(Owner.ClientId);
     }
 
-    [PunRPC]
-    void CastElectricBallPUN()
+    void FixedUpdate()
     {
-        if (!photonView.IsMine) return;
-        // Создаем электрический шар из префаба
-        GameObject electricBall = PhotonNetwork.Instantiate(
-            electricBallPrefab.name,
-            marker.position,
-            transform.rotation
-        );
+        if (!IsOwner)
+            return;
 
-        // Получаем компонент ElectricBall
-        ElectricBall eb = electricBall.GetComponent<ElectricBall>();
-
-        eb.desiredPosition = marker.transform.position;
-        eb.SetOwner(photonView.Owner.ActorNumber);
-    }
-
-    // Добавлено для WaterExplosion
-    [PunRPC]
-    void CastWaterExplosionPUN()
-    {
-        if (!photonView.IsMine) return;
-        canCastWaterExplosion = false;
-
-        // Создаем водяной взрыв в позиции маркера
-        GameObject waterExplosion = PhotonNetwork.Instantiate(
-            waterExplosionPrefab.name,
-            marker.position,
-            Quaternion.identity
-        );
-        WaterExplosion wE = waterExplosion.GetComponent<WaterExplosion>();
-        wE.SetOwner(photonView.Owner.ActorNumber);
-
-    }
-
-    private void FixedUpdate()
-    {
-        // Cooldown для ElectricBall
         if (ElectricBallTimer > ElectricBallCooldown)
         {
             ElectricBallTimer = 0;
             canCastElectricBall = true;
         }
         else
-        {
             ElectricBallTimer += Time.deltaTime;
-        }
 
-        // Добавлено: Cooldown для WaterExplosion
         if (waterExplosionTimer > waterExplosionCooldown)
         {
             waterExplosionTimer = 0;
             canCastWaterExplosion = true;
         }
         else
-        {
             waterExplosionTimer += Time.deltaTime;
-        }
     }
 }
